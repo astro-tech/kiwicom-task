@@ -2,8 +2,8 @@ import csv
 from collections import namedtuple
 
 # mandatory arguments
-origin = 'WIW'
-destination = 'RFZ'
+origin = 'DHE'
+destination = 'NIZ'
 
 # initialize output
 output = []
@@ -14,7 +14,7 @@ Graph = namedtuple('Graph', ['vertices', 'edges'])
 airports = []   # these are the graph vertices
 routes = []   # these are the graph edges
 
-with open('example/example0.csv', newline='') as csv_file:
+with open('example/example1.csv', newline='') as csv_file:
     flights = csv.DictReader(csv_file)
     for row in flights:
         if row['origin'] not in airports:
@@ -37,8 +37,9 @@ def convert_to_adjacency_list(graph):
             output_dictionary[vertex_1].append(vertex_2)
     return output_dictionary
 
-print(convert_to_adjacency_list(flights))
 
+outbound_adj = convert_to_adjacency_list(flights)
+print(outbound_adj)
 
 
 
