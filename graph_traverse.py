@@ -5,6 +5,12 @@ destination_3 = 'RFZ'
 adjacency_list_4 = {'DHE': ['NIZ', 'NRX', 'SML'], 'NIZ': [], 'NRX': ['NIZ', 'SML', 'XXX'], 'SML': ['NRX', 'NIZ'], 'XXX': []}
 origin_4 = 'DHE'
 destination_4 = 'NIZ'
+adjacency_list_5 = {'YOT': ['IUQ', 'IUT', 'LOM', 'GXV'], 'IUQ': [], 'GXV': ['IUQ', 'IUT', 'LOM', 'XXX'], 'IUT': ['GXV', 'IUQ', 'LOM'], 'LOM': ['IUT', 'GXV'], 'XXX': []}
+origin_5 = 'YOT'
+destination_5 = 'IUQ'
+adjacency_list_4r = {'DHE': [], 'NIZ': ['DHE', 'NRX', 'SML'], 'NRX': ['SML', 'DHE'], 'SML': ['NRX', 'DHE']}
+origin_4r = 'NIZ'
+destination_4r = 'DHE'
 
 
 def get_all_possibilities_between_origin_destination(adj, start, end):
@@ -45,6 +51,13 @@ def get_all_possibilities_between_origin_destination(adj, start, end):
     return possibilities
 
 
-# print(get_all_possibilities_between_origin_destination(adjacency_list_3, origin_3, destination_3))
-print(get_all_possibilities_between_origin_destination(adjacency_list_4, origin_4, destination_4))
+# result1 = get_all_possibilities_between_origin_destination(adjacency_list_3, origin_3, destination_3)
+# result2 = get_all_possibilities_between_origin_destination(adjacency_list_4, origin_4, destination_4)
+# result3 = get_all_possibilities_between_origin_destination(adjacency_list_4r, origin_4r, destination_4r)
+# result4 = get_all_possibilities_between_origin_destination(adjacency_list_5, origin_5, destination_5)
+# count = 1
+# for i in result1:
+#     print(count, end=': ')
+#     print(i)
+#     count += 1
 
