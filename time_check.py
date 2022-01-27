@@ -1,5 +1,13 @@
 from datetime import datetime, timedelta
 
+empty_time = None
+my_now = datetime.now()
+print(my_now)
+max_allowed = timedelta(hours=0)
+
+print(max_allowed)
+
+
 # time_1 = '2021-09-01T11:00:00'
 # time_2 = '2021-09-01T15:00:00'
 #

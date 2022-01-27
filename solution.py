@@ -2,6 +2,7 @@ import csv
 from collections import namedtuple
 from graph_traverse import get_all_possibilities_between_origin_destination
 from journey_filter import search_for_connective_flights
+from datetime import datetime, timedelta
 
 
 def scan_csv_file_to_memory(file):
@@ -9,6 +10,13 @@ def scan_csv_file_to_memory(file):
     with open(file, newline='') as csv_file:
         flights = csv.DictReader(csv_file)
         for row in flights:
+            base_price_cnv = float(row['base_price'])
+            row['base_price'] = base_price_cnv
+            bag_price_cnv = float(row['bag_price'])
+            row['bag_price'] = bag_price_cnv
+            bags_allowed_cnv = int(row['bags_allowed'])
+            row['bags_allowed'] = bags_allowed_cnv
+            # print(row)
             flights_list_out.append(row)
     return flights_list_out
 
@@ -50,11 +58,40 @@ def fetch_flights_within_travel_plan(travel_plan):
     return search_for_connective_flights(possible_journeys)
 
 
+def convert_to_output_format(plans):
+    output_list = []
+    for current_travel_plan in plans:
+        print(current_travel_plan)
+        fetched_flights = fetch_flights_within_travel_plan(current_travel_plan)
+        for flights_found in fetched_flights:
+            bags_allowed = []
+            total_price = 0.0
+            travel_time = timedelta(hours=0)
+            for flight_leg in flights_found:
+                print(flight_leg)
+                bags_allowed.append(flight_leg['bags_allowed'])
+                total_price += flight_leg['base_price'] + flight_leg['bag_price']   # not sure if bag_price * bag_nbr
+                current_flight_time = datetime.strptime(flight_leg['arrival'], '%Y-%m-%dT%H:%M:%S') - \
+                    datetime.strptime(flight_leg['departure'], '%Y-%m-%dT%H:%M:%S')
+                travel_time += current_flight_time
+            # print(flights_found)
+            current_dictionary = {'flights': flights_found,
+                                  'origin': origin,
+                                  'destination': destination,
+                                  'bags_allowed': min(bags_allowed),
+                                  'bags_count': requested_bags,
+                                  'total_price': total_price,
+                                  'travel_time': str(travel_time)}
+            output_list.append(current_dictionary)
+    return output_list
+
+
 if __name__ == '__main__':
     # mandatory arguments
     origin = 'WIW'
     destination = 'RFZ'
     input_file = 'example/example0.csv'
+    requested_bags = 2
 
     # create graph namedtuple
     Graph = namedtuple('Graph', ['vertices', 'edges'])
@@ -67,8 +104,8 @@ if __name__ == '__main__':
     # print(outbound_adj)
     travel_plans = get_all_possibilities_between_origin_destination(outbound_adj, origin, destination)
     # print(travel_plans)
-    for current_travel_plan in travel_plans:
-        # print(current_travel_plan)
-        fetched_flights = fetch_flights_within_travel_plan(current_travel_plan)
-        for flight_found in fetched_flights:
-            print(flight_found)
+    output = convert_to_output_format(travel_plans)
+    print(output)
+
+
+
