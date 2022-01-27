@@ -20,10 +20,11 @@ def search_for_connective_flights(flights_dict):
         nonlocal counter, present_solution
         for row in ways:
             present_solution.append(row)
-            if counter == legs_count and check_consecutive_flights(present_solution):
-                solutions.append(present_solution[:])
-            if counter == legs_count and present_solution:
-                present_solution.pop()
+            if counter == legs_count:
+                if check_consecutive_flights(present_solution):
+                    solutions.append(present_solution[:])
+                if present_solution:
+                    present_solution.pop()
             if counter < legs_count:
                 counter += 1
                 inner_loop(flights_dict[counter])
@@ -35,4 +36,6 @@ def search_for_connective_flights(flights_dict):
     return solutions
 
 
-# print(search_for_connective_flights(possible_journeys))
+# result = search_for_connective_flights(possible_journeys)
+# for i in result:
+#     print(i)

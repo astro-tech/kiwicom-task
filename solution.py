@@ -5,6 +5,7 @@ from operator import itemgetter
 # custom imports
 from graph_traverse import get_all_possibilities_between_origin_destination
 from journey_filter import search_for_connective_flights
+from progress_bar import print_progress_bar
 
 
 def scan_csv_file_to_memory(file):
@@ -37,6 +38,12 @@ def generate_flights_network_graph(input_data):
     return network_out
 
 
+def validate_origin_destination_input():
+    if origin not in network.vertices or destination not in network.vertices:
+        print('Either origin or destination airport codes are not present in database!')
+        raise ValueError
+
+
 def convert_to_adjacency_list(graph, start, end):
     output_dictionary = {vertex: [] for vertex in graph.vertices}
     for edge in graph.edges:
@@ -63,9 +70,13 @@ def fetch_flights_within_travel_plan(travel_plan, min_bags):
 
 def convert_to_output_format(plans, min_bags):
     output_list = []
+    plans_length = len(plans)
+    i = 0
     for current_travel_plan in plans:
-        print(current_travel_plan)
+        # print(current_travel_plan)
+        i += 1
         fetched_flights = fetch_flights_within_travel_plan(current_travel_plan, min_bags)
+        print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
         for flights_found in fetched_flights:
             bags_allowed = []
             total_price = 0.0
@@ -94,7 +105,8 @@ if __name__ == '__main__':
     origin = 'WIW'
     destination = 'RFZ'
     input_file = 'example/example0.csv'
-    requested_bags = 2
+    requested_bags = 1
+    max_transfer = 3
 
     # create graph namedtuple
     Graph = namedtuple('Graph', ['vertices', 'edges'])
@@ -103,14 +115,17 @@ if __name__ == '__main__':
     # print(flights_list)
     network = generate_flights_network_graph(flights_list)
     # print(network)
+    validate_origin_destination_input()
     outbound_adj = convert_to_adjacency_list(network, origin, destination)  # inbound: (flights, destination, origin)
     # print(outbound_adj)
-    travel_plans = get_all_possibilities_between_origin_destination(outbound_adj, origin, destination)
+    travel_plans = get_all_possibilities_between_origin_destination(outbound_adj, origin, destination, max_transfer)
     # print(travel_plans)
     output = convert_to_output_format(travel_plans, requested_bags)
     # print(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)   # ascending
-    print(ordered_output)
+    # print(ordered_output)
+    for line in ordered_output:
+        print(line)
 
 
 
