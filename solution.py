@@ -1,8 +1,10 @@
 import csv
 from collections import namedtuple
+from datetime import datetime, timedelta
+from operator import itemgetter
+# custom imports
 from graph_traverse import get_all_possibilities_between_origin_destination
 from journey_filter import search_for_connective_flights
-from datetime import datetime, timedelta
 
 
 def scan_csv_file_to_memory(file):
@@ -44,31 +46,32 @@ def convert_to_adjacency_list(graph, start, end):
     return output_dictionary
 
 
-def fetch_flights_within_travel_plan(travel_plan):
+def fetch_flights_within_travel_plan(travel_plan, min_bags):
     possible_journeys = {}
     leg_counter = 0
     for leg in travel_plan:
         possible_journeys[leg_counter] = []
         current_origin, current_destination = leg[0], leg[1]
         for row in flights_list:
-            if row['origin'] == current_origin and row['destination'] == current_destination:
+            if row['origin'] == current_origin and row['destination'] == current_destination and \
+                    row['bags_allowed'] >= min_bags:
                 possible_journeys[leg_counter].append(row)
         leg_counter += 1
     # print(possible_journeys)
     return search_for_connective_flights(possible_journeys)
 
 
-def convert_to_output_format(plans):
+def convert_to_output_format(plans, min_bags):
     output_list = []
     for current_travel_plan in plans:
         print(current_travel_plan)
-        fetched_flights = fetch_flights_within_travel_plan(current_travel_plan)
+        fetched_flights = fetch_flights_within_travel_plan(current_travel_plan, min_bags)
         for flights_found in fetched_flights:
             bags_allowed = []
             total_price = 0.0
             travel_time = timedelta(hours=0)
             for flight_leg in flights_found:
-                print(flight_leg)
+                # print(flight_leg)
                 bags_allowed.append(flight_leg['bags_allowed'])
                 total_price += flight_leg['base_price'] + flight_leg['bag_price']   # not sure if bag_price * bag_nbr
                 current_flight_time = datetime.strptime(flight_leg['arrival'], '%Y-%m-%dT%H:%M:%S') - \
@@ -79,7 +82,7 @@ def convert_to_output_format(plans):
                                   'origin': origin,
                                   'destination': destination,
                                   'bags_allowed': min(bags_allowed),
-                                  'bags_count': requested_bags,
+                                  'bags_count': min_bags,
                                   'total_price': total_price,
                                   'travel_time': str(travel_time)}
             output_list.append(current_dictionary)
@@ -104,8 +107,11 @@ if __name__ == '__main__':
     # print(outbound_adj)
     travel_plans = get_all_possibilities_between_origin_destination(outbound_adj, origin, destination)
     # print(travel_plans)
-    output = convert_to_output_format(travel_plans)
-    print(output)
+    output = convert_to_output_format(travel_plans, requested_bags)
+    # print(output)
+    ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)   # ascending
+    print(ordered_output)
+
 
 
 
