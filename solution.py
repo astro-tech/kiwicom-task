@@ -2,10 +2,58 @@ import csv
 from collections import namedtuple
 from datetime import datetime, timedelta
 from operator import itemgetter
+import sys
+import os
 # custom imports
 from graph_traverse import get_all_possibilities_between_origin_destination
 from journey_filter import search_for_connective_flights
 from progress_bar import print_progress_bar
+
+
+def command_line_arguments():
+    # handling command line arguments
+    # -f <filename>     /parsing a local HTML file.
+    print("\nArguments passed: " + str(len(sys.argv)))
+    for i in range(0, len(sys.argv)):   # sys.argv[0]: name of Python script
+        print(sys.argv[i])
+    input_file_arg = sys.argv[1]
+    if not os.path.isfile('./' + input_file_arg):
+        print("Input CSV file does not exist.")
+        input("Press any key to exit.")
+        sys.exit(0)
+    origin_arg = sys.argv[2]
+    destination_arg = sys.argv[3]
+    requested_bags_arg = 0
+    if len(sys.argv) > 4:
+        try:
+            requested_bags_arg = sys.argv[4].split('=')[1]
+            requested_bags_arg = int(requested_bags_arg)
+        except IndexError:
+            print('Enter valid number for requested bags (format --bags=1)')
+            input("Press any key to exit.")
+            sys.exit(0)
+        except ValueError:
+            print('Enter valid number for requested bags (format --bags=1)')
+            input("Press any key to exit.")
+            sys.exit(0)
+    return_requested_arg = False
+    if len(sys.argv) > 5:
+        if sys.argv[5] == '--return':
+            return_requested_arg = True
+    max_transfer_arg = 6
+    if len(sys.argv) > 6:
+        try:
+            max_transfer_arg = sys.argv[6].split('=')[1]
+            max_transfer_arg = int(max_transfer_arg)
+        except IndexError:
+            print('Enter valid number for maximum transfers (format --transfers=1)')
+            input("Press any key to exit.")
+            sys.exit(0)
+        except ValueError:
+            print('Enter valid number for maximum transfers (format --transfers=1)')
+            input("Press any key to exit.")
+            sys.exit(0)
+    return input_file_arg, origin_arg, destination_arg, requested_bags_arg, return_requested_arg, max_transfer_arg
 
 
 def scan_csv_file_to_memory(file):
@@ -40,8 +88,9 @@ def generate_flights_network_graph(input_data):
 
 def validate_origin_destination_input():
     if origin not in network.vertices or destination not in network.vertices:
-        print('Either origin or destination airport codes are not present in database!')
-        raise ValueError
+        print('Either origin or destination airport codes are not present in database! (Case sensitive!)')
+        input("Press any key to exit.")
+        sys.exit(0)
 
 
 def convert_to_adjacency_list(graph, start, end):
@@ -102,14 +151,25 @@ def convert_to_output_format(plans, min_bags):
 
 if __name__ == '__main__':
     # mandatory arguments
-    origin = 'WIW'
-    destination = 'RFZ'
-    input_file = 'example/example0.csv'
-    requested_bags = 1
-    max_transfer = 3
+    # input_file = 'example/example0.csv'
+    # origin = 'WIW'
+    # destination = 'RFZ'
+    # requested_bags = 0
+    # return_requested = False
+    # max_transfer = 3
 
     # create graph namedtuple
     Graph = namedtuple('Graph', ['vertices', 'edges'])
+
+    args = command_line_arguments()
+    input_file, origin, destination, requested_bags, return_requested, max_transfer = \
+        args[0], args[1], args[2], args[3], args[4], args[5]
+    print(input_file)
+    print(origin)
+    print(destination)
+    print(requested_bags)
+    print(return_requested)
+    print(max_transfer)
 
     flights_list = scan_csv_file_to_memory(input_file)
     # print(flights_list)
@@ -123,9 +183,9 @@ if __name__ == '__main__':
     output = convert_to_output_format(travel_plans, requested_bags)
     # print(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)   # ascending
-    # print(ordered_output)
-    for line in ordered_output:
-        print(line)
+    print(ordered_output)
+    # for line in ordered_output:
+    #     print(line)
 
 
 
