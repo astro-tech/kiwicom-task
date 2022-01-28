@@ -11,49 +11,39 @@ from progress_bar import print_progress_bar
 
 
 def command_line_arguments():
-    # handling command line arguments
-    # -f <filename>     /parsing a local HTML file.
+    def validate_number(index, warning_text, format_text, default_value):
+        if len(sys.argv) > index:
+            try:
+                argument = sys.argv[index].split('=')[1]
+                argument = int(argument)
+            except IndexError:
+                print(f'Enter valid number for {warning_text} (format {format_text})')
+                input("Press any key to exit.")
+                sys.exit(0)
+            except ValueError:
+                print(f'Enter valid number for {warning_text} (format {format_text})')
+                input("Press any key to exit.")
+                sys.exit(0)
+            return argument
+        return default_value
+    arguments = {}
     print("\nArguments passed: " + str(len(sys.argv)))
     for i in range(0, len(sys.argv)):   # sys.argv[0]: name of Python script
         print(sys.argv[i])
-    input_file_arg = sys.argv[1]
-    if not os.path.isfile('./' + input_file_arg):
+    arguments['input_file'] = sys.argv[1]
+    if not os.path.isfile('./' + arguments['input_file']):
         print("Input CSV file does not exist.")
         input("Press any key to exit.")
         sys.exit(0)
-    origin_arg = sys.argv[2]
-    destination_arg = sys.argv[3]
-    requested_bags_arg = 0
-    if len(sys.argv) > 4:
-        try:
-            requested_bags_arg = sys.argv[4].split('=')[1]
-            requested_bags_arg = int(requested_bags_arg)
-        except IndexError:
-            print('Enter valid number for requested bags (format --bags=1)')
-            input("Press any key to exit.")
-            sys.exit(0)
-        except ValueError:
-            print('Enter valid number for requested bags (format --bags=1)')
-            input("Press any key to exit.")
-            sys.exit(0)
-    return_requested_arg = False
+    arguments['origin'] = sys.argv[2]   # validated later
+    arguments['destination'] = sys.argv[3]   # validated later
+    arguments['requested_bags'] = validate_number(4, 'requested bags', '--bags=1', 0)
+    arguments['return_requested'] = False
     if len(sys.argv) > 5:
         if sys.argv[5] == '--return':
-            return_requested_arg = True
-    max_transfer_arg = 6
-    if len(sys.argv) > 6:
-        try:
-            max_transfer_arg = sys.argv[6].split('=')[1]
-            max_transfer_arg = int(max_transfer_arg)
-        except IndexError:
-            print('Enter valid number for maximum transfers (format --transfers=1)')
-            input("Press any key to exit.")
-            sys.exit(0)
-        except ValueError:
-            print('Enter valid number for maximum transfers (format --transfers=1)')
-            input("Press any key to exit.")
-            sys.exit(0)
-    return input_file_arg, origin_arg, destination_arg, requested_bags_arg, return_requested_arg, max_transfer_arg
+            arguments['return_requested'] = True
+    arguments['max_transfer'] = validate_number(6, 'maximum transfers', '--transfers=1', 6)
+    return arguments
 
 
 def scan_csv_file_to_memory(file):
@@ -87,7 +77,7 @@ def generate_flights_network_graph(input_data):
 
 
 def validate_origin_destination_input():
-    if origin not in network.vertices or destination not in network.vertices:
+    if a['origin'] not in network.vertices or a['destination'] not in network.vertices:
         print('Either origin or destination airport codes are not present in database! (Case sensitive!)')
         input("Press any key to exit.")
         sys.exit(0)
@@ -139,8 +129,8 @@ def convert_to_output_format(plans, min_bags):
                 travel_time += current_flight_time
             # print(flights_found)
             current_dictionary = {'flights': flights_found,
-                                  'origin': origin,
-                                  'destination': destination,
+                                  'origin': a['origin'],
+                                  'destination': a['destination'],
                                   'bags_allowed': min(bags_allowed),
                                   'bags_count': min_bags,
                                   'total_price': total_price,
@@ -150,37 +140,24 @@ def convert_to_output_format(plans, min_bags):
 
 
 if __name__ == '__main__':
-    # mandatory arguments
-    # input_file = 'example/example0.csv'
-    # origin = 'WIW'
-    # destination = 'RFZ'
-    # requested_bags = 0
-    # return_requested = False
-    # max_transfer = 3
+    # development arguments
+    # a = {'input_file': 'example/example0.csv', 'origin': 'WIW', 'destination': 'RFZ',
+    #      'requested_bags': 0, 'return_requested': False, 'max_transfer': 3}
+    Graph = namedtuple('Graph', ['vertices', 'edges'])          # create graph namedtuple
 
-    # create graph namedtuple
-    Graph = namedtuple('Graph', ['vertices', 'edges'])
-
-    args = command_line_arguments()
-    input_file, origin, destination, requested_bags, return_requested, max_transfer = \
-        args[0], args[1], args[2], args[3], args[4], args[5]
-    print(input_file)
-    print(origin)
-    print(destination)
-    print(requested_bags)
-    print(return_requested)
-    print(max_transfer)
-
-    flights_list = scan_csv_file_to_memory(input_file)
+    a = command_line_arguments()
+    print(a)
+    flights_list = scan_csv_file_to_memory(a['input_file'])
     # print(flights_list)
     network = generate_flights_network_graph(flights_list)
     # print(network)
     validate_origin_destination_input()
-    outbound_adj = convert_to_adjacency_list(network, origin, destination)  # inbound: (flights, destination, origin)
+    outbound_adj = convert_to_adjacency_list(network, a['origin'], a['destination'])    # swap for return
     # print(outbound_adj)
-    travel_plans = get_all_possibilities_between_origin_destination(outbound_adj, origin, destination, max_transfer)
+    travel_plans = get_all_possibilities_between_origin_destination(
+        outbound_adj, a['origin'], a['destination'], a['max_transfer'])
     # print(travel_plans)
-    output = convert_to_output_format(travel_plans, requested_bags)
+    output = convert_to_output_format(travel_plans, a['requested_bags'])
     # print(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)   # ascending
     print(ordered_output)
