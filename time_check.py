@@ -14,7 +14,7 @@ def check_within_timeframe(reference, compare):
         reference_time = datetime.strptime(reference, '%Y-%m-%dT%H:%M:%S')
         compare_time = datetime.strptime(compare, '%Y-%m-%dT%H:%M:%S')
     except TypeError:
-        return False
+        return False    # separate validation during development
     except ValueError:
         return False
     min_allowed = reference_time + timedelta(hours=1)

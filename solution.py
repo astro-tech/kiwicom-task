@@ -48,17 +48,34 @@ def command_line_arguments():
 
 def scan_csv_file_to_memory(file):
     flights_list_out = []
+    correct_fieldnames = ['flight_no', 'origin', 'destination', 'departure', 'arrival',
+                          'base_price', 'bag_price', 'bags_allowed']
     with open(file, newline='') as csv_file:
         flights = csv.DictReader(csv_file)
-        for row in flights:
-            base_price_cnv = float(row['base_price'])
-            row['base_price'] = base_price_cnv
-            bag_price_cnv = float(row['bag_price'])
-            row['bag_price'] = bag_price_cnv
-            bags_allowed_cnv = int(row['bags_allowed'])
-            row['bags_allowed'] = bags_allowed_cnv
-            # print(row)
-            flights_list_out.append(row)
+        if flights.fieldnames == correct_fieldnames:
+            for row in flights:
+                try:
+                    datetime.strptime(row['departure'], '%Y-%m-%dT%H:%M:%S')
+                    datetime.strptime(row['arrival'], '%Y-%m-%dT%H:%M:%S')
+                except ValueError:
+                    print(f'Incorrect time format given in CSV departure or arrival column. '
+                          f'(format YYYY-MM-DDTHH:MM:SS)')
+                    input("Press any key to exit.")
+                    sys.exit(0)
+                try:
+                    row['base_price'] = float(row['base_price'])
+                    row['bag_price'] = float(row['bag_price'])
+                    row['bags_allowed'] = int(row['bags_allowed'])
+                except ValueError:
+                    print('Enter valid number for base_price,bag_price,bags_allowed')
+                    input("Press any key to exit.")
+                    sys.exit(0)
+                print(row)
+                flights_list_out.append(row)
+        else:
+            print('The CSV file fieldnames shall be: ' + str(correct_fieldnames))
+            input("Press any key to exit.")
+            sys.exit(0)
     return flights_list_out
 
 
@@ -141,11 +158,11 @@ def convert_to_output_format(plans, min_bags):
 
 if __name__ == '__main__':
     # development arguments
-    # a = {'input_file': 'example/example0.csv', 'origin': 'WIW', 'destination': 'RFZ',
-    #      'requested_bags': 0, 'return_requested': False, 'max_transfer': 3}
+    a = {'input_file': 'example/example0.csv', 'origin': 'WIW', 'destination': 'RFZ',
+         'requested_bags': 0, 'return_requested': False, 'max_transfer': 3}
     Graph = namedtuple('Graph', ['vertices', 'edges'])          # create graph namedtuple
 
-    a = command_line_arguments()
+    # a = command_line_arguments()
     print(a)
     flights_list = scan_csv_file_to_memory(a['input_file'])
     # print(flights_list)
