@@ -27,8 +27,11 @@ def get_all_possibilities_between_origin_destination(adj, start, end, max_transf
         visited[vertex] = True
         if vertex == end:   # searching reached end on current branch
             # print('reached end')
-            if len(current_search) < max_transfer + 2:      # e.g: 4 legs are 3 transfers
-                possibilities.append(current_search[:])   # current_search is copied not just referenced, see note01
+            if max_transfer:    # max transfer might not be limited and have None value
+                if len(current_search) < max_transfer + 2:      # e.g: 4 legs are 3 transfers
+                    possibilities.append(current_search[:])   # current_search is copied not just referenced, see note01
+            else:
+                possibilities.append(current_search[:])
             if current_search:      # to avoid pop on empty list error
                 current_search.pop()
             visited[vertex] = False     # destination can be visited again in another branch

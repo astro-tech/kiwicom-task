@@ -42,7 +42,7 @@ def command_line_arguments():
     if len(sys.argv) > 5:
         if sys.argv[5] == '--return':
             arguments['return_requested'] = True
-    arguments['max_transfer'] = validate_number(6, 'maximum transfers', '--transfers=1', 6)
+    arguments['max_transfer'] = validate_number(6, 'maximum transfers', '--transfers=1', None)
     return arguments
 
 
@@ -70,7 +70,7 @@ def scan_csv_file_to_memory(file):
                     print('Enter valid number for base_price,bag_price,bags_allowed')
                     input("Press any key to exit.")
                     sys.exit(0)
-                print(row)
+                # print(row)
                 flights_list_out.append(row)
         else:
             print('The CSV file fieldnames shall be: ' + str(correct_fieldnames))
@@ -158,11 +158,11 @@ def convert_to_output_format(plans, min_bags):
 
 if __name__ == '__main__':
     # development arguments
-    a = {'input_file': 'example/example0.csv', 'origin': 'WIW', 'destination': 'RFZ',
-         'requested_bags': 0, 'return_requested': False, 'max_transfer': 3}
+    # a = {'input_file': 'example/example0.csv', 'origin': 'WIW', 'destination': 'RFZ',
+    #      'requested_bags': 0, 'return_requested': False, 'max_transfer': 3}
     Graph = namedtuple('Graph', ['vertices', 'edges'])          # create graph namedtuple
 
-    # a = command_line_arguments()
+    a = command_line_arguments()
     print(a)
     flights_list = scan_csv_file_to_memory(a['input_file'])
     # print(flights_list)
