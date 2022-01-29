@@ -6,30 +6,34 @@ import sys
 import os
 # custom imports
 from graph_traverse import get_all_possibilities_between_origin_destination
-from journey_filter import search_for_connective_flights
+from journey_filter import discover_all_combinations
 from progress_bar import print_progress_bar
 
 
 def command_line_arguments():
-    def validate_number(index, warning_text, format_text, default_value):
-        if len(sys.argv) > index:
+    def index_containing_substring(the_list, substring):
+        for idx, s in enumerate(the_list):
+            if substring in s:
+                return idx
+        return False
+
+    def search_and_validate_number(search_string, warning_text, default_value):
+        argument_indexes[search_string] = index_containing_substring(sys.argv, search_string)
+        if argument_indexes[search_string]:
             try:
-                argument = sys.argv[index].split('=')[1]
+                argument = sys.argv[argument_indexes[search_string]].split('=')[1]
                 argument = int(argument)
-            except IndexError:
-                print(f'Enter valid number for {warning_text} (format {format_text})')
+            except ValueError:      # in case not a number is entered
+                print(f'Enter valid number for {warning_text} (format {search_string}1)')
                 input("Press any key to exit.")
                 sys.exit(0)
-            except ValueError:
-                print(f'Enter valid number for {warning_text} (format {format_text})')
-                input("Press any key to exit.")
-                sys.exit(0)
-            return argument
-        return default_value
+        else:
+            argument = default_value
+        return argument
     arguments = {}
+    argument_indexes = {}
     print("\nArguments passed: " + str(len(sys.argv)))
-    for i in range(0, len(sys.argv)):   # sys.argv[0]: name of Python script
-        print(sys.argv[i])
+    print(sys.argv)
     arguments['input_file'] = sys.argv[1]
     if not os.path.isfile('./' + arguments['input_file']):
         print("Input CSV file does not exist.")
@@ -37,12 +41,12 @@ def command_line_arguments():
         sys.exit(0)
     arguments['origin'] = sys.argv[2]   # validated later
     arguments['destination'] = sys.argv[3]   # validated later
-    arguments['requested_bags'] = validate_number(4, 'requested bags', '--bags=1', 0)
-    arguments['return_requested'] = False
-    if len(sys.argv) > 5:
-        if sys.argv[5] == '--return':
-            arguments['return_requested'] = True
-    arguments['max_transfer'] = validate_number(6, 'maximum transfers', '--transfers=1', None)
+    if '--return' in sys.argv:
+        arguments['return_requested'] = True
+    else:
+        arguments['return_requested'] = False
+    arguments['requested_bags'] = search_and_validate_number('--bags=', 'requested bags', 0)
+    arguments['max_transfer'] = search_and_validate_number('--transfer=', 'maximum transfers', None)
     return arguments
 
 
@@ -67,7 +71,7 @@ def scan_csv_file_to_memory(file):
                     row['bag_price'] = float(row['bag_price'])
                     row['bags_allowed'] = int(row['bags_allowed'])
                 except ValueError:
-                    print('Enter valid number for base_price,bag_price,bags_allowed')
+                    print('Enter valid number for base_price, bag_price, bags_allowed')
                     input("Press any key to exit.")
                     sys.exit(0)
                 # print(row)
@@ -109,6 +113,32 @@ def convert_to_adjacency_list(graph, start, end):
     return output_dictionary
 
 
+def generate_travel_plans():    # handles one-way only and return trips as well
+    outbound_adj = convert_to_adjacency_list(network, a['origin'], a['destination'])
+    # print(outbound_adj)
+    travel_plans_out = get_all_possibilities_between_origin_destination(
+        outbound_adj, a['origin'], a['destination'], a['max_transfer'])
+    # print(travel_plans_out)
+    if a['return_requested']:
+        inbound_adj = convert_to_adjacency_list(network, a['destination'], a['origin'])
+        # print(inbound_adj)
+        travel_plans_back = get_all_possibilities_between_origin_destination(
+            inbound_adj, a['destination'], a['origin'], a['max_transfer'])
+        # print(travel_plans_back)
+        return_trip = {0: travel_plans_out, 1: travel_plans_back}
+        intermediate_step = discover_all_combinations(return_trip, True, a['destination'])
+        # print(intermediate_step)
+        travel_plans_return = []
+        for i in intermediate_step:
+            current_list = []
+            for j in i:
+                for k in j:
+                    current_list.append(k)
+            travel_plans_return.append(current_list[:])
+        return travel_plans_return
+    return travel_plans_out
+
+
 def fetch_flights_within_travel_plan(travel_plan, min_bags):
     possible_journeys = {}
     leg_counter = 0
@@ -121,7 +151,7 @@ def fetch_flights_within_travel_plan(travel_plan, min_bags):
                 possible_journeys[leg_counter].append(row)
         leg_counter += 1
     # print(possible_journeys)
-    return search_for_connective_flights(possible_journeys)
+    return discover_all_combinations(possible_journeys, False, a['destination'])
 
 
 def convert_to_output_format(plans, min_bags):
@@ -158,8 +188,8 @@ def convert_to_output_format(plans, min_bags):
 
 if __name__ == '__main__':
     # development arguments
-    # a = {'input_file': 'example/example0.csv', 'origin': 'WIW', 'destination': 'RFZ',
-    #      'requested_bags': 0, 'return_requested': False, 'max_transfer': 3}
+    # a = {'input_file': 'example/example1.csv', 'origin': 'DHE', 'destination': 'NIZ',
+    #      'requested_bags': 0, 'return_requested': True, 'max_transfer': 1}
     Graph = namedtuple('Graph', ['vertices', 'edges'])          # create graph namedtuple
 
     a = command_line_arguments()
@@ -169,10 +199,7 @@ if __name__ == '__main__':
     network = generate_flights_network_graph(flights_list)
     # print(network)
     validate_origin_destination_input()
-    outbound_adj = convert_to_adjacency_list(network, a['origin'], a['destination'])    # swap for return
-    # print(outbound_adj)
-    travel_plans = get_all_possibilities_between_origin_destination(
-        outbound_adj, a['origin'], a['destination'], a['max_transfer'])
+    travel_plans = generate_travel_plans()
     # print(travel_plans)
     output = convert_to_output_format(travel_plans, a['requested_bags'])
     # print(output)
@@ -180,7 +207,3 @@ if __name__ == '__main__':
     print(ordered_output)
     # for line in ordered_output:
     #     print(line)
-
-
-
-

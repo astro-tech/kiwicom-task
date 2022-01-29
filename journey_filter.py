@@ -9,8 +9,21 @@ from time_check import check_consecutive_flights
 #          {'origin': 'RFZ', 'destination': 'BUD', 'departure': '2021-09-01T20:10:00', 'arrival': '2021-09-01T18:40:00'}]
 #      }
 
+# possible_journeys = {0: [[('WIW', 'ECV'), ('ECV', 'RFZ')], [('WIW', 'RFZ')]], 1: [[('RFZ', 'ECV'), ('ECV', 'WIW')], [('RFZ', 'WIW')]]}
+# possible_journeys = \
+#     {0: [[('DHE', 'NIZ')],
+#          [('DHE', 'NRX'), ('NRX', 'NIZ')],
+#          [('DHE', 'NRX'), ('NRX', 'SML'), ('SML', 'NIZ')],
+#          [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ')],
+#          [('DHE', 'SML'), ('SML', 'NIZ')]],
+#      1: [[('NIZ', 'DHE')],
+#          [('NIZ', 'NRX'), ('NRX', 'SML'), ('SML', 'DHE')],
+#          [('NIZ', 'NRX'), ('NRX', 'DHE')],
+#          [('NIZ', 'SML'), ('SML', 'NRX'), ('NRX', 'DHE')],
+#          [('NIZ', 'SML'), ('SML', 'DHE')]]}
 
-def search_for_connective_flights(flights_dict):
+
+def discover_all_combinations(flights_dict, searching_return, destination):
     legs_count = len(flights_dict) - 1
     present_solution = []
     solutions = []
@@ -20,9 +33,12 @@ def search_for_connective_flights(flights_dict):
         nonlocal counter, present_solution
         for row in ways:
             present_solution.append(row)
-            if counter == legs_count:
-                if check_consecutive_flights(present_solution):
+            if counter == legs_count:   # reached bottom level
+                if searching_return:    # this part to reuse code for return search as well
                     solutions.append(present_solution[:])
+                else:
+                    if check_consecutive_flights(present_solution, destination):   # original part without return search
+                        solutions.append(present_solution[:])
                 if present_solution:
                     present_solution.pop()
             if counter < legs_count:
@@ -36,6 +52,7 @@ def search_for_connective_flights(flights_dict):
     return solutions
 
 
-# result = search_for_connective_flights(possible_journeys)
-# for i in result:
-#     print(i)
+# result = discover_all_combinations(possible_journeys, True, 'NIZ')
+# # for i in result:
+# #     print(i)
+# print(result)
