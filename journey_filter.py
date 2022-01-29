@@ -1,15 +1,18 @@
 from time_check import check_consecutive_flights
 
+# flights search examples within current itinerary
 # possible_journeys = \
-#     {0:  [{'origin': 'WIW', 'destination': 'ECV', 'departure': '2021-09-01T07:25:00', 'arrival': '2021-09-01T11:00:00'},
-#           {'origin': 'WIW', 'destination': 'ECV', 'departure': '2021-09-02T07:25:00', 'arrival': '2021-09-02T11:00:00'}],
+#     {0: [{'origin': 'WIW', 'destination': 'ECV', 'departure': '2021-09-01T07:25:00', 'arrival': '2021-09-01T11:00:00'},
+#         {'origin': 'WIW', 'destination': 'ECV', 'departure': '2021-09-02T07:25:00', 'arrival': '2021-09-02T11:00:00'}],
 #      1: [{'origin': 'ECV', 'destination': 'RFZ', 'departure': '2021-09-01T12:10:00', 'arrival': '2021-09-01T14:40:00'},
 #          {'origin': 'ECV', 'destination': 'RFZ', 'departure': '2021-09-01T12:20:00', 'arrival': '2021-09-01T14:50:00'}],
 #      2: [{'origin': 'RFZ', 'destination': 'BUD', 'departure': '2021-09-01T19:10:00', 'arrival': '2021-09-01T18:40:00'},
 #          {'origin': 'RFZ', 'destination': 'BUD', 'departure': '2021-09-01T20:10:00', 'arrival': '2021-09-01T18:40:00'}]
 #      }
 
-# possible_journeys = {0: [[('WIW', 'ECV'), ('ECV', 'RFZ')], [('WIW', 'RFZ')]], 1: [[('RFZ', 'ECV'), ('ECV', 'WIW')], [('RFZ', 'WIW')]]}
+# return journey search examples
+# possible_journeys = {0: [[('WIW', 'ECV'), ('ECV', 'RFZ')], [('WIW', 'RFZ')]],
+#                      1: [[('RFZ', 'ECV'), ('ECV', 'WIW')], [('RFZ', 'WIW')]]}
 # possible_journeys = \
 #     {0: [[('DHE', 'NIZ')],
 #          [('DHE', 'NRX'), ('NRX', 'NIZ')],

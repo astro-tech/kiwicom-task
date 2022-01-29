@@ -1,11 +1,22 @@
 # note01: https://stackoverflow.com/questions/5280799/list-append-changing-all-elements-to-the-appended-item
+
+# adjacency list examples
 # adjacency_list_3 = {'WIW': ['XXX', 'ECV', 'RFZ'], 'ECV': ['RFZ', 'XXX'], 'RFZ': [], 'XXX': []}
 # origin_3 = 'WIW'
 # destination_3 = 'RFZ'
-# adjacency_list_4 = {'DHE': ['NIZ', 'NRX', 'SML'], 'NIZ': [], 'NRX': ['NIZ', 'SML', 'XXX'], 'SML': ['NRX', 'NIZ'], 'XXX': []}
+# adjacency_list_4 = {'DHE': ['NIZ', 'NRX', 'SML'],
+#                     'NIZ': [],
+#                     'NRX': ['NIZ', 'SML', 'XXX'],
+#                     'SML': ['NRX', 'NIZ'],
+#                     'XXX': []}    # dead end trap
 # origin_4 = 'DHE'
 # destination_4 = 'NIZ'
-# adjacency_list_5 = {'YOT': ['IUQ', 'IUT', 'LOM', 'GXV'], 'IUQ': [], 'GXV': ['IUQ', 'IUT', 'LOM', 'XXX'], 'IUT': ['GXV', 'IUQ', 'LOM'], 'LOM': ['IUT', 'GXV'], 'XXX': []}
+# adjacency_list_5 = {'YOT': ['IUQ', 'IUT', 'LOM', 'GXV'],
+#                     'IUQ': [],
+#                     'GXV': ['IUQ', 'IUT', 'LOM', 'XXX'],
+#                     'IUT': ['GXV', 'IUQ', 'LOM'],
+#                     'LOM': ['IUT', 'GXV'],
+#                     'XXX': []}    # dead end trap
 # origin_5 = 'YOT'
 # destination_5 = 'IUQ'
 # adjacency_list_4r = {'DHE': [], 'NIZ': ['DHE', 'NRX', 'SML'], 'NRX': ['SML', 'DHE'], 'SML': ['NRX', 'DHE']}
@@ -43,7 +54,7 @@ def get_all_possibilities_between_origin_destination(adj, start, end, max_transf
             for child in children:
                 # print('current_child: ' + child)
                 if not visited[child]:      # to avoid visiting vertex in same branch
-                    # print('appendeles')
+                    # print('appending')
                     current_search.append((vertex, child))  # register current dfs leg
                     dfs(child)  # recursive
             if current_search:      # to avoid pop on empty list error
@@ -64,4 +75,3 @@ def get_all_possibilities_between_origin_destination(adj, start, end, max_transf
 #     print(count, end=': ')
 #     print(i)
 #     count += 1
-
