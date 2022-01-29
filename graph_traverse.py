@@ -38,7 +38,7 @@ def get_all_possibilities_between_origin_destination(adj, start, end, max_transf
         visited[vertex] = True
         if vertex == end:   # searching reached end on current branch
             # print('reached end')
-            if max_transfer:    # max transfer might not be limited and have None value
+            if max_transfer or max_transfer == 0:    # max transfer might not be limited and have None or 0 value
                 if len(current_search) < max_transfer + 2:      # e.g: 4 legs are 3 transfers
                     possibilities.append(current_search[:])   # current_search is copied not just referenced, see note01
             else:

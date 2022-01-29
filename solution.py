@@ -212,7 +212,7 @@ def convert_to_json_format(input_list):
 if __name__ == '__main__':
     # development arguments
     # a = {'input_file': 'example/example0.csv', 'origin': 'WIW', 'destination': 'RFZ', 'requested_bags': 0,
-    #      'return_requested': False, 'max_transfer': 1, 'print_progress': False, 'raw_format_requested': False}
+    #      'return_requested': True, 'max_transfer': 0, 'print_progress': True, 'raw_format_requested': True}
     Graph = namedtuple('Graph', ['vertices', 'edges'])          # create graph namedtuple
 
     a = command_line_arguments()
@@ -232,4 +232,3 @@ if __name__ == '__main__':
     else:
         json_output = convert_to_json_format(ordered_output)
         print(json_output)
-
