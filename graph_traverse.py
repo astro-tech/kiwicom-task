@@ -46,7 +46,6 @@ def get_all_possibilities_between_origin_destination(adj, start, end, max_transf
             if current_search:      # to avoid pop on empty list error
                 current_search.pop()
             visited[vertex] = False     # destination can be visited again in another branch
-            # return
         else:
             # print('current_vertex: ' + vertex)
             children = adj[vertex]

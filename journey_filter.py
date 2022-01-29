@@ -26,7 +26,7 @@ from time_check import check_consecutive_flights
 #          [('NIZ', 'SML'), ('SML', 'DHE')]]}
 
 
-def discover_all_combinations(flights_dict, searching_return, destination):
+def discover_all_combinations(flights_dict, destination, searching_return=False):
     legs_count = len(flights_dict) - 1
     present_solution = []
     solutions = []

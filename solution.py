@@ -12,8 +12,8 @@ from progress_bar import print_progress_bar
 
 
 def command_line_arguments():
-    def index_containing_substring(the_list, substring):
-        for idx, s in enumerate(the_list):
+    def index_containing_substring(input_list, substring):
+        for idx, s in enumerate(input_list):
             if substring in s:
                 return idx
         return False
@@ -24,7 +24,7 @@ def command_line_arguments():
             try:
                 argument = sys.argv[argument_indexes[search_string]].split('=')[1]
                 argument = int(argument)
-            except ValueError:      # in case not a number is entered
+            except ValueError:
                 print(f'Enter valid number for {warning_text} (format {search_string}1)')
                 input("Press any key to exit.")
                 sys.exit(0)
@@ -38,12 +38,12 @@ def command_line_arguments():
         else:
             argument = False
         return argument
+
     arguments = {}
     argument_indexes = {}
     argument_numbers = len(sys.argv)
-    # print("\nArguments passed: " + str(argument_numbers))
     # print(sys.argv)
-    if argument_numbers < 4:    # validate if mandatory arguments are given
+    if argument_numbers < 4:
         print('Mandatory arguments are missing! Required: CSV file location, origin airport, destination airport.')
         print('Example: python -m solution example/example0.csv WIW RFZ')
         input("Press any key to exit.")
@@ -53,8 +53,8 @@ def command_line_arguments():
         print("Input CSV file does not exist.")
         input("Press any key to exit.")
         sys.exit(0)
-    arguments['origin'] = sys.argv[2]   # validated later
-    arguments['destination'] = sys.argv[3]   # validated later
+    arguments['origin'] = sys.argv[2]  # validated later
+    arguments['destination'] = sys.argv[3]  # validated later
     arguments['requested_bags'] = search_and_validate_number_argument('--bags=', 'requested bags', 0)
     arguments['max_transfer'] = search_and_validate_number_argument('--transfer=', 'maximum transfers', None)
     arguments['return_requested'] = search_boolean_argument('--return')
@@ -97,8 +97,8 @@ def scan_csv_file_to_memory(file):
 
 
 def generate_flights_network_graph(input_data):
-    airports = []   # these are the graph vertices
-    routes = []   # these are the graph edges
+    airports = []  # graph vertices
+    routes = []  # graph edges
     for row in input_data:
         if row['origin'] not in airports:
             airports.append(row['origin'])
@@ -106,7 +106,7 @@ def generate_flights_network_graph(input_data):
             airports.append(row['destination'])
         if (row['origin'], row['destination']) not in routes:
             routes.append((row['origin'], row['destination']))
-    network_out = Graph(airports, routes)   # initialize graph object
+    network_out = Graph(airports, routes)  # graph object
     return network_out
 
 
@@ -121,12 +121,12 @@ def convert_to_adjacency_list(graph, start, end):
     output_dictionary = {vertex: [] for vertex in graph.vertices}
     for edge in graph.edges:
         vertex_1, vertex_2 = edge[0], edge[1]
-        if vertex_1 != end and vertex_2 != start:   # filter out return flights to make directed graph
+        if vertex_1 != end and vertex_2 != start:  # filter out return flights to make directed graph
             output_dictionary[vertex_1].append(vertex_2)
     return output_dictionary
 
 
-def generate_travel_plans():    # handles one-way only and return trips as well
+def generate_travel_plans():
     outbound_adj = convert_to_adjacency_list(network, a['origin'], a['destination'])
     # print(outbound_adj)
     travel_plans_out = get_all_possibilities_between_origin_destination(
@@ -139,9 +139,9 @@ def generate_travel_plans():    # handles one-way only and return trips as well
             inbound_adj, a['destination'], a['origin'], a['max_transfer'])
         # print(travel_plans_back)
         return_trip = {0: travel_plans_out, 1: travel_plans_back}
-        intermediate_step = discover_all_combinations(return_trip, True, a['destination'])
+        intermediate_step = discover_all_combinations(return_trip, a['destination'], searching_return=True)
         # print(intermediate_step)
-        travel_plans_return = []    # merging outbound and inbound solutions
+        travel_plans_return = []  # merging outbound and inbound solutions
         for i in intermediate_step:
             current_list = []
             for j in i:
@@ -164,7 +164,7 @@ def fetch_flights_within_travel_plan(travel_plan, min_bags):
                 possible_journeys[leg_counter].append(row)
         leg_counter += 1
     # print(possible_journeys)
-    return discover_all_combinations(possible_journeys, False, a['destination'])
+    return discover_all_combinations(possible_journeys, a['destination'])
 
 
 def generate_output_list(plans, min_bags):
@@ -184,9 +184,9 @@ def generate_output_list(plans, min_bags):
             for flight_leg in flights_found:
                 # print(flight_leg)
                 bags_allowed.append(flight_leg['bags_allowed'])
-                total_price += flight_leg['base_price'] + flight_leg['bag_price']   # not sure if bag_price * bag_nbr
-                current_flight_time = datetime.strptime(flight_leg['arrival'], '%Y-%m-%dT%H:%M:%S') - \
-                    datetime.strptime(flight_leg['departure'], '%Y-%m-%dT%H:%M:%S')
+                total_price += flight_leg['base_price'] + flight_leg['bag_price']  # not sure if bag_price * bag_nbr
+                current_flight_time = datetime.strptime(flight_leg['arrival'], '%Y-%m-%dT%H:%M:%S') \
+                    - datetime.strptime(flight_leg['departure'], '%Y-%m-%dT%H:%M:%S')
                 travel_time += current_flight_time
             # print(flights_found)
             current_dictionary = {'flights': flights_found,
@@ -213,7 +213,7 @@ if __name__ == '__main__':
     # development arguments
     # a = {'input_file': 'example/example0.csv', 'origin': 'WIW', 'destination': 'RFZ', 'requested_bags': 0,
     #      'return_requested': True, 'max_transfer': 0, 'print_progress': True, 'raw_format_requested': True}
-    Graph = namedtuple('Graph', ['vertices', 'edges'])          # create graph namedtuple
+    Graph = namedtuple('Graph', ['vertices', 'edges'])  # create graph namedtuple
 
     a = command_line_arguments()
     # print(a)
@@ -226,7 +226,7 @@ if __name__ == '__main__':
     # print(travel_plans)
     output = generate_output_list(travel_plans, a['requested_bags'])
     # print(output)
-    ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)   # ascending
+    ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
     if a['raw_format_requested']:
         print(ordered_output)
     else:
