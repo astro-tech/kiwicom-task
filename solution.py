@@ -17,7 +17,7 @@ def command_line_arguments():
                 return idx
         return False
 
-    def search_and_validate_number(search_string, warning_text, default_value):
+    def search_and_validate_number_argument(search_string, warning_text, default_value):
         argument_indexes[search_string] = index_containing_substring(sys.argv, search_string)
         if argument_indexes[search_string]:
             try:
@@ -30,10 +30,23 @@ def command_line_arguments():
         else:
             argument = default_value
         return argument
+
+    def search_boolean_argument(search_string):
+        if search_string in sys.argv:
+            argument = True
+        else:
+            argument = False
+        return argument
     arguments = {}
     argument_indexes = {}
-    print("\nArguments passed: " + str(len(sys.argv)))
-    print(sys.argv)
+    argument_numbers = len(sys.argv)
+    # print("\nArguments passed: " + str(argument_numbers))
+    # print(sys.argv)
+    if argument_numbers < 4:    # validate if mandatory arguments are given
+        print('Mandatory arguments are missing! Required: CSV file location, origin airport, destination airport.')
+        print('Example: python -m solution example/example0.csv WIW RFZ')
+        input("Press any key to exit.")
+        sys.exit(0)
     arguments['input_file'] = sys.argv[1]
     if not os.path.isfile('./' + arguments['input_file']):
         print("Input CSV file does not exist.")
@@ -41,12 +54,10 @@ def command_line_arguments():
         sys.exit(0)
     arguments['origin'] = sys.argv[2]   # validated later
     arguments['destination'] = sys.argv[3]   # validated later
-    if '--return' in sys.argv:
-        arguments['return_requested'] = True
-    else:
-        arguments['return_requested'] = False
-    arguments['requested_bags'] = search_and_validate_number('--bags=', 'requested bags', 0)
-    arguments['max_transfer'] = search_and_validate_number('--transfer=', 'maximum transfers', None)
+    arguments['requested_bags'] = search_and_validate_number_argument('--bags=', 'requested bags', 0)
+    arguments['max_transfer'] = search_and_validate_number_argument('--transfer=', 'maximum transfers', None)
+    arguments['return_requested'] = search_boolean_argument('--return')
+    arguments['print_progress'] = search_boolean_argument('--progress')
     return arguments
 
 
@@ -161,8 +172,9 @@ def convert_to_output_format(plans, min_bags):
     for current_travel_plan in plans:
         # print(current_travel_plan)
         i += 1
+        if a['print_progress']:
+            print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
         fetched_flights = fetch_flights_within_travel_plan(current_travel_plan, min_bags)
-        print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
         for flights_found in fetched_flights:
             bags_allowed = []
             total_price = 0.0
@@ -189,7 +201,7 @@ def convert_to_output_format(plans, min_bags):
 if __name__ == '__main__':
     # development arguments
     # a = {'input_file': 'example/example1.csv', 'origin': 'DHE', 'destination': 'NIZ',
-    #      'requested_bags': 0, 'return_requested': True, 'max_transfer': 1}
+    #      'requested_bags': 0, 'return_requested': True, 'max_transfer': 1, 'print_progress': True}
     Graph = namedtuple('Graph', ['vertices', 'edges'])          # create graph namedtuple
 
     a = command_line_arguments()
@@ -204,6 +216,7 @@ if __name__ == '__main__':
     output = convert_to_output_format(travel_plans, a['requested_bags'])
     # print(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)   # ascending
+    print()     # print new line before output
     print(ordered_output)
     # for line in ordered_output:
     #     print(line)
