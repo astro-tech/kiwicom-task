@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from operator import itemgetter
 import sys
 import os
+import json
 # custom imports
 from graph_traverse import get_all_possibilities_between_origin_destination
 from journey_filter import discover_all_combinations
@@ -58,6 +59,7 @@ def command_line_arguments():
     arguments['max_transfer'] = search_and_validate_number_argument('--transfer=', 'maximum transfers', None)
     arguments['return_requested'] = search_boolean_argument('--return')
     arguments['print_progress'] = search_boolean_argument('--progress')
+    arguments['raw_format_requested'] = search_boolean_argument('--raw')
     return arguments
 
 
@@ -165,7 +167,7 @@ def fetch_flights_within_travel_plan(travel_plan, min_bags):
     return discover_all_combinations(possible_journeys, False, a['destination'])
 
 
-def convert_to_output_format(plans, min_bags):
+def generate_output_list(plans, min_bags):
     output_list = []
     plans_length = len(plans)
     i = 0
@@ -198,14 +200,23 @@ def convert_to_output_format(plans, min_bags):
     return output_list
 
 
+def convert_to_json_format(input_list):
+    stringed_list = str(input_list)
+    stringed_list = stringed_list.replace("\'", "\"")
+    # print(stringed_list)
+    parsed = json.loads(stringed_list)
+    converted = json.dumps(parsed, indent=4, sort_keys=False)
+    return converted
+
+
 if __name__ == '__main__':
     # development arguments
-    # a = {'input_file': 'example/example1.csv', 'origin': 'DHE', 'destination': 'NIZ',
-    #      'requested_bags': 0, 'return_requested': True, 'max_transfer': 1, 'print_progress': True}
+    # a = {'input_file': 'example/example0.csv', 'origin': 'WIW', 'destination': 'RFZ', 'requested_bags': 0,
+    #      'return_requested': False, 'max_transfer': 1, 'print_progress': False, 'raw_format_requested': False}
     Graph = namedtuple('Graph', ['vertices', 'edges'])          # create graph namedtuple
 
     a = command_line_arguments()
-    print(a)
+    # print(a)
     flights_list = scan_csv_file_to_memory(a['input_file'])
     # print(flights_list)
     network = generate_flights_network_graph(flights_list)
@@ -213,10 +224,12 @@ if __name__ == '__main__':
     validate_origin_destination_input()
     travel_plans = generate_travel_plans()
     # print(travel_plans)
-    output = convert_to_output_format(travel_plans, a['requested_bags'])
+    output = generate_output_list(travel_plans, a['requested_bags'])
     # print(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)   # ascending
-    print()     # print new line before output
-    print(ordered_output)
-    # for line in ordered_output:
-    #     print(line)
+    if a['raw_format_requested']:
+        print(ordered_output)
+    else:
+        json_output = convert_to_json_format(ordered_output)
+        print(json_output)
+
