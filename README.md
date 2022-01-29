@@ -1,8 +1,9 @@
-# Solution candidate for Kiwi.com Python weekend entry task
+# Candidate solution for Kiwi.com Python weekend entry task
 
 ### Description
-This Python package is written as a candidate solution to Kiwi.com entry task. Link to page:
-https://github.com/kiwicom/python-weekend-entry-task
+This Python package is written as a candidate solution to Kiwi.com entry task. 
+
+Link to page: https://github.com/kiwicom/python-weekend-entry-task
 
 The package is able to generate a JSON compatible structured list from a csv file supplied in examples and a 
 few command line arguments. The paradigm involves modular programming, which I found faster in this case than OOP.
@@ -39,7 +40,7 @@ Optional arguments can be given in random order.
 
 **The main file is solution.py.**
 
-###Additional notes
+### Additional notes
 
 If the total number of transfers in each trip (including return trips) are more than 3, the program has performance issues.
 This is down to the sheer number of combinations discovered. Nevertheless, in case of a realistic 1 or 2 transfers are
