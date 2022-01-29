@@ -141,7 +141,7 @@ def generate_travel_plans():    # handles one-way only and return trips as well
         return_trip = {0: travel_plans_out, 1: travel_plans_back}
         intermediate_step = discover_all_combinations(return_trip, True, a['destination'])
         # print(intermediate_step)
-        travel_plans_return = []
+        travel_plans_return = []    # merging outbound and inbound solutions
         for i in intermediate_step:
             current_list = []
             for j in i:
@@ -169,12 +169,12 @@ def fetch_flights_within_travel_plan(travel_plan, min_bags):
 
 def generate_output_list(plans, min_bags):
     output_list = []
-    plans_length = len(plans)
     i = 0
     for current_travel_plan in plans:
         # print(current_travel_plan)
         i += 1
         if a['print_progress']:
+            plans_length = len(plans)
             print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
         fetched_flights = fetch_flights_within_travel_plan(current_travel_plan, min_bags)
         for flights_found in fetched_flights:
