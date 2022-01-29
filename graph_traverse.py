@@ -1,29 +1,5 @@
 # note01: https://stackoverflow.com/questions/5280799/list-append-changing-all-elements-to-the-appended-item
 
-# adjacency list examples
-# adjacency_list_3 = {'WIW': ['XXX', 'ECV', 'RFZ'], 'ECV': ['RFZ', 'XXX'], 'RFZ': [], 'XXX': []}
-# origin_3 = 'WIW'
-# destination_3 = 'RFZ'
-# adjacency_list_4 = {'DHE': ['NIZ', 'NRX', 'SML'],
-#                     'NIZ': [],
-#                     'NRX': ['NIZ', 'SML', 'XXX'],
-#                     'SML': ['NRX', 'NIZ'],
-#                     'XXX': []}    # dead end trap
-# origin_4 = 'DHE'
-# destination_4 = 'NIZ'
-# adjacency_list_5 = {'YOT': ['IUQ', 'IUT', 'LOM', 'GXV'],
-#                     'IUQ': [],
-#                     'GXV': ['IUQ', 'IUT', 'LOM', 'XXX'],
-#                     'IUT': ['GXV', 'IUQ', 'LOM'],
-#                     'LOM': ['IUT', 'GXV'],
-#                     'XXX': []}    # dead end trap
-# origin_5 = 'YOT'
-# destination_5 = 'IUQ'
-# adjacency_list_4r = {'DHE': [], 'NIZ': ['DHE', 'NRX', 'SML'], 'NRX': ['SML', 'DHE'], 'SML': ['NRX', 'DHE']}
-# origin_4r = 'NIZ'
-# destination_4r = 'DHE'
-
-
 def get_all_possibilities_between_origin_destination(adj, start, end, max_transfer):
     possibilities = []
     current_search = []
@@ -63,14 +39,3 @@ def get_all_possibilities_between_origin_destination(adj, start, end, max_transf
     dfs(start)
 
     return possibilities
-
-
-# result1 = get_all_possibilities_between_origin_destination(adjacency_list_3, origin_3, destination_3)
-# result2 = get_all_possibilities_between_origin_destination(adjacency_list_4, origin_4, destination_4)
-# result3 = get_all_possibilities_between_origin_destination(adjacency_list_4r, origin_4r, destination_4r)
-# result4 = get_all_possibilities_between_origin_destination(adjacency_list_5, origin_5, destination_5, 1)
-# count = 1
-# for i in result4:
-#     print(count, end=': ')
-#     print(i)
-#     count += 1
