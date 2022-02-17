@@ -39,6 +39,7 @@ The following table describes how to use the arguments:
 | `raw_format_requested`| boolean  | Get output as dictionary?| Optional (defaults to False) | --raw                 |
 
 Optional arguments can be given in random order.
+To display the command line help screen use: -h or --help
 
 **The main file is solution.py.**
 
