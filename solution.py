@@ -159,12 +159,11 @@ def generate_travel_plans():
 def fetch_flights_within_travel_plan(travel_plan, min_bags):
     transfer_lists = {}     # adjacency list
     graph_starts = []
-    # travel_plan = [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ'), ('NIZ', 'DHE')]  # to be cleared
     travel_plan_length = len(travel_plan)
     if travel_plan_length == 1:
         sectors_to_check = [0]
     else:
-        sectors_to_check = [i for i in range(len(travel_plan) - 1)]
+        sectors_to_check = [i for i in range(travel_plan_length - 1)]
     for i in sectors_to_check:
         first_trip_origin, first_trip_destination = travel_plan[i][0], travel_plan[i][1]
         for row_1 in flights_list:
@@ -252,7 +251,7 @@ def convert_to_json_format(input_list):
 if __name__ == '__main__':
     # development arguments
     a = {'input_file': 'example/example1l.csv', 'origin': 'DHE', 'destination': 'NIZ', 'requested_bags': 0,
-         'return_requested': False, 'max_transfer': None, 'print_progress': False, 'raw_format_requested': False}
+         'return_requested': False, 'max_transfer': None, 'print_progress': True, 'raw_format_requested': False}
     Graph = namedtuple('Graph', ['vertices', 'edges'])  # create graph namedtuple
 
     #a = command_line_arguments()

@@ -10,14 +10,16 @@ few command line arguments. The paradigm involves modular programming, which I f
 
 Pipeline:
 - Parse command line arguments as inputs and validate them.
-- Load and parse CSV file into memory while validating its contents.
+- Load and parse CSV file into memory while validating its contents. Each line of flight gets a unique ID number for later use*.
 - Create a  namedtuple Graph object from the database (Graph vertices=airports, Graph edges=routes).
 - The `origin` and `destination` arguments are validated at this stage.
 - Adjacency lists are generated from the Graph object. Outbound always, inbound only in case of return trip.
-- Graph traversal is conducted by a depth-first search (DFS) algorithm. The `transfer` filter is applied here.
-- If `return` trip is requested the inbound and outbound solutions are merged with all possible combinations.
-- Based on all the combinations within each trip the possible flights are assigned to them with `bags` filter.
-- Another combination search is commenced to discover all possibilities but only those are registered which satisfies the layover rule.
+- Graph traversal is conducted by a depth-first search (DFS) algorithm. The `transfer` filter is applied here. The result is a list of all valid airport-pair combinations.
+- If `return` trip is requested the inbound and outbound solutions are merged to have all possible combinations.
+- A new graph is created within each combination of flights. *Here the flights themselves are substituted with their ID's. This graph is represented with an adjacency list taking into consideration the transfer rules and `bags` filter.
+- This 'journey' graph is also traversed by a DFS algorithm to build the list of valid flights (ID) within each combination.
+- The ID numbers are replaced with the actual flights data.
+- The ID numbers are cleared from the output.
 - The output is reordered by the total ticket + bag price.
 - Finally, the output is converted to JSON compatible format if not otherwise requested by the `raw` argument.
 
