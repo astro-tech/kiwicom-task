@@ -91,7 +91,7 @@ def scan_csv_file_to_memory(file):
                     sys.exit(0)
                 row['idn'] = idn    # unique id number is added to each row for later use
                 idn += 1
-                print(row)
+                # print(row)
                 flights_list_out.append(row)
         else:
             print('The CSV file fieldnames shall be: ' + str(correct_fieldnames))
@@ -198,9 +198,9 @@ def fetch_flights_within_travel_plan_2(travel_plan, min_bags):
         for row_1 in flights_list:
             if row_1['origin'] == first_trip_origin and row_1['destination'] == first_trip_destination and \
                     row_1['bags_allowed'] >= min_bags:
-                transfer_lists[str(row_1['idn'])+row_1['origin']+row_1['destination']] = []
+                transfer_lists[row_1['idn']] = []
                 if i == 0:      # to collect the first leg id's as starting points for the graph traversal
-                    graph_starts.append(str(row_1['idn'])+row_1['origin']+row_1['destination'])
+                    graph_starts.append(row_1['idn'])
                 if travel_plan_length > 1:
                     second_trip_origin, second_trip_destination = travel_plan[i + 1][0], travel_plan[i + 1][1]
                     for row_2 in flights_list:
@@ -208,13 +208,23 @@ def fetch_flights_within_travel_plan_2(travel_plan, min_bags):
                             layover = True      # this does not necessarily mean that it's layover, but the next if
                         else:                   # statement makes it clear
                             layover = False
-                        if row_2['origin'] == second_trip_origin and row_2['destination'] == second_trip_destination and \
-                                row_2['bags_allowed'] >= min_bags and check_within_timeframe(row_1['arrival'], row_2['departure'], layover):
-                            transfer_lists[str(row_1['idn'])+row_1['origin']+row_1['destination']].append(str(row_2['idn'])+row_2['origin']+row_2['destination'])
+                        if row_2['origin'] == second_trip_origin and row_2['destination'] == second_trip_destination \
+                                and row_2['bags_allowed'] >= min_bags \
+                                and check_within_timeframe(row_1['arrival'], row_2['departure'], layover):
+                            transfer_lists[row_1['idn']].append(row_2['idn'])
     # print(transfer_lists)
     # print(graph_starts)
     list_of_flights_ids = transfer_lists_traverse(graph_starts, transfer_lists, travel_plan_length)
     print(list_of_flights_ids)
+    list_of_flights = []
+    for current_list in list_of_flights_ids:
+        current_list_of_flights = []
+        for current_id in current_list:
+            for row in flights_list:
+                if row['idn'] == current_id:
+                    current_list_of_flights.append(row)
+        list_of_flights.append(current_list_of_flights[:])
+    print(list_of_flights)
 
 
 def generate_output_list(plans, min_bags):
