@@ -155,39 +155,11 @@ def generate_travel_plans():
         return travel_plans_return
     return travel_plans_out
 
-"""
-def fetch_flights_within_travel_plan(min_bags):    # (travel_plan, min_bags)
-    travel_plan = [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ')]
-    first_trip_origin, first_trip_destination = travel_plan[0][0], travel_plan[0][1]
-    possible_journeys = []
-    dictionary_counter = 0
-    for row_1 in flights_list:      # outer loop for iterating first leg flights
-        if row_1['origin'] == first_trip_origin and row_1['destination'] == first_trip_destination and \
-                row_1['bags_allowed'] >= min_bags:
-            possible_journeys.append({0: [row_1]})
-            if len(travel_plan) > 1:
-                first_trip_arrival = row_1['arrival']
-                travel_plan_slice = travel_plan[1:]
-                leg_counter = 1
-                for leg in travel_plan_slice:   # inner loop for iterating other sectors
-                    possible_journeys[dictionary_counter][leg_counter] = []
-                    current_origin, current_destination = leg[0], leg[1]
-                    for row_2 in flights_list:
-                        if row_2['origin'] == current_origin and row_2['destination'] == current_destination and \
-                                row_2['bags_allowed'] >= min_bags and \
-                                check_total_trip_time(first_trip_arrival, row_2['departure']):
-                            possible_journeys[dictionary_counter][leg_counter].append(row_2)
-                    leg_counter += 1
-            dictionary_counter += 1
-    print(possible_journeys)
-    return #discover_all_combinations(possible_journeys, a['destination'])
-"""
 
-
-def fetch_flights_within_travel_plan_2(travel_plan, min_bags):
+def fetch_flights_within_travel_plan(travel_plan, min_bags):
     transfer_lists = {}     # adjacency list
     graph_starts = []
-    travel_plan = [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ'), ('NIZ', 'DHE')]  # to be cleared
+    # travel_plan = [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ'), ('NIZ', 'DHE')]  # to be cleared
     travel_plan_length = len(travel_plan)
     if travel_plan_length == 1:
         sectors_to_check = [0]
@@ -215,16 +187,16 @@ def fetch_flights_within_travel_plan_2(travel_plan, min_bags):
     # print(transfer_lists)
     # print(graph_starts)
     list_of_flights_ids = transfer_lists_traverse(graph_starts, transfer_lists, travel_plan_length)
-    print(list_of_flights_ids)
+    # print(list_of_flights_ids)
     list_of_flights = []
-    for current_list in list_of_flights_ids:
+    for current_list in list_of_flights_ids:        # here the id numbers are substituted for the flights
         current_list_of_flights = []
         for current_id in current_list:
             for row in flights_list:
                 if row['idn'] == current_id:
                     current_list_of_flights.append(row)
         list_of_flights.append(current_list_of_flights[:])
-    print(list_of_flights)
+    return list_of_flights
 
 
 def generate_output_list(plans, min_bags):
@@ -236,7 +208,7 @@ def generate_output_list(plans, min_bags):
         if a['print_progress']:
             plans_length = len(plans)
             print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
-        fetched_flights = fetch_flights_within_travel_plan_2(current_travel_plan, min_bags)
+        fetched_flights = fetch_flights_within_travel_plan(current_travel_plan, min_bags)
         for flights_found in fetched_flights:
             bags_allowed = []
             total_price = 0.0
@@ -260,6 +232,14 @@ def generate_output_list(plans, min_bags):
     return output_list
 
 
+def remove_id_numbers(input_list):
+    for i in input_list:
+        for j in i:
+            if j == 'flights':
+                for k in i['flights']:
+                    k.pop('idn', None)
+
+
 def convert_to_json_format(input_list):
     stringed_list = str(input_list)
     stringed_list = stringed_list.replace("\'", "\"")
@@ -272,7 +252,7 @@ def convert_to_json_format(input_list):
 if __name__ == '__main__':
     # development arguments
     a = {'input_file': 'example/example1l.csv', 'origin': 'DHE', 'destination': 'NIZ', 'requested_bags': 0,
-         'return_requested': False, 'max_transfer': None, 'print_progress': True, 'raw_format_requested': True}
+         'return_requested': False, 'max_transfer': None, 'print_progress': False, 'raw_format_requested': False}
     Graph = namedtuple('Graph', ['vertices', 'edges'])  # create graph namedtuple
 
     #a = command_line_arguments()
@@ -283,16 +263,14 @@ if __name__ == '__main__':
     # print(network)
     validate_origin_destination_input()
     travel_plans = generate_travel_plans()
-    fetch_flights_within_travel_plan_2(None, 0)
     # print(len(travel_plans))
-    # for i in travel_plans:
-    #     print(i)
-    # # print(travel_plans)
-    """output = generate_output_list(travel_plans, a['requested_bags'])
+    # print(travel_plans)
+    output = generate_output_list(travel_plans, a['requested_bags'])
     # print(output)
+    remove_id_numbers(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
     if a['raw_format_requested']:
         print(ordered_output)
     else:
         json_output = convert_to_json_format(ordered_output)
-        print(json_output)"""
+        print(json_output)
