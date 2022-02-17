@@ -187,9 +187,13 @@ def fetch_flights_within_travel_plan(min_bags):    # (travel_plan, min_bags)
 def fetch_flights_within_travel_plan_2(min_bags):
     transfer_lists = {}
     graph_starts = []
-    travel_plan = [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ'), ('NIZ', 'DHE')]      # todo if only direct flight?
+    travel_plan = [('DHE', 'SML')]
     travel_plan_length = len(travel_plan)
-    for i in range(len(travel_plan) - 1):
+    if travel_plan_length == 1:
+        sectors_to_check = [0]
+    else:
+        sectors_to_check = [i for i in range(len(travel_plan) - 1)]
+    for i in sectors_to_check:
         first_trip_origin, first_trip_destination = travel_plan[i][0], travel_plan[i][1]
         for row_1 in flights_list:
             if row_1['origin'] == first_trip_origin and row_1['destination'] == first_trip_destination and \
@@ -197,16 +201,16 @@ def fetch_flights_within_travel_plan_2(min_bags):
                 transfer_lists[str(row_1['idn'])+row_1['origin']+row_1['destination']] = []
                 if i == 0:      # to collect the first leg id's as starting points for the graph traversal
                     graph_starts.append(str(row_1['idn'])+row_1['origin']+row_1['destination'])
-                # here a condition is needed for direct flight
-                second_trip_origin, second_trip_destination = travel_plan[i + 1][0], travel_plan[i + 1][1]
-                for row_2 in flights_list:
-                    if row_2['origin'] == a['destination']:
-                        layover = True      # this does not necessarily mean that it's layover, but the next if
-                    else:                   # statement makes it clear
-                        layover = False
-                    if row_2['origin'] == second_trip_origin and row_2['destination'] == second_trip_destination and \
-                            row_2['bags_allowed'] >= min_bags and check_within_timeframe(row_1['arrival'], row_2['departure'], layover):
-                        transfer_lists[str(row_1['idn'])+row_1['origin']+row_1['destination']].append(str(row_2['idn'])+row_2['origin']+row_2['destination'])
+                if travel_plan_length > 1:
+                    second_trip_origin, second_trip_destination = travel_plan[i + 1][0], travel_plan[i + 1][1]
+                    for row_2 in flights_list:
+                        if row_2['origin'] == a['destination']:
+                            layover = True      # this does not necessarily mean that it's layover, but the next if
+                        else:                   # statement makes it clear
+                            layover = False
+                        if row_2['origin'] == second_trip_origin and row_2['destination'] == second_trip_destination and \
+                                row_2['bags_allowed'] >= min_bags and check_within_timeframe(row_1['arrival'], row_2['departure'], layover):
+                            transfer_lists[str(row_1['idn'])+row_1['origin']+row_1['destination']].append(str(row_2['idn'])+row_2['origin']+row_2['destination'])
     print(travel_plan_length)
     print(transfer_lists)
     print(graph_starts)
