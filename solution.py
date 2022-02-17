@@ -2,8 +2,8 @@ import csv
 from collections import namedtuple
 from datetime import datetime, timedelta
 from operator import itemgetter
+import argparse
 import sys
-import os
 import json
 # custom imports
 from airports_traverse import get_all_possibilities_between_origin_destination
@@ -12,63 +12,28 @@ from progress_bar import print_progress_bar
 from time_check import check_within_timeframe
 
 
-def command_line_arguments():
-    def index_containing_substring(input_list, substring):
-        for idx, s in enumerate(input_list):
-            if substring in s:
-                return idx
-        return False
-
-    def search_and_validate_number_argument(search_string, warning_text, default_value):
-        argument_indexes[search_string] = index_containing_substring(sys.argv, search_string)
-        if argument_indexes[search_string]:
-            try:
-                argument = sys.argv[argument_indexes[search_string]].split('=')[1]
-                argument = int(argument)
-            except ValueError:
-                print(f'Enter valid number for {warning_text} (format {search_string}1)')
-                input("Press any key to exit.")
-                sys.exit(0)
-        else:
-            argument = default_value
-        return argument
-
-    def search_boolean_argument(search_string):
-        if search_string in sys.argv:
-            argument = True
-        else:
-            argument = False
-        return argument
-
-    arguments = {}
-    argument_indexes = {}
-    argument_numbers = len(sys.argv)
-    # print(sys.argv)
-    if argument_numbers < 4:
-        print('Mandatory arguments are missing! Required: CSV file location, origin airport, destination airport.')
-        print('Example: python -m solution example/example0.csv WIW RFZ')
-        input("Press any key to exit.")
-        sys.exit(0)
-    arguments['input_file'] = sys.argv[1]
-    if not os.path.isfile('./' + arguments['input_file']):
-        print("Input CSV file does not exist.")
-        input("Press any key to exit.")
-        sys.exit(0)
-    arguments['origin'] = sys.argv[2]  # validated later
-    arguments['destination'] = sys.argv[3]  # validated later
-    arguments['requested_bags'] = search_and_validate_number_argument('--bags=', 'requested bags', 0)
-    arguments['max_transfer'] = search_and_validate_number_argument('--transfer=', 'maximum transfers', None)
-    arguments['return_requested'] = search_boolean_argument('--return')
-    arguments['print_progress'] = search_boolean_argument('--progress')
-    arguments['raw_format_requested'] = search_boolean_argument('--raw')
-    return arguments
+def command_line_arguments_2():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input_file', type=argparse.FileType('r'), help='input CSV file location')
+    parser.add_argument('origin', help='origin airport code')
+    parser.add_argument('destination', help='destination  airport code')
+    parser.add_argument('--bags', dest='requested_bags', type=int, default=0, help='number of requested bags')
+    parser.add_argument('--transfer', dest='max_transfer', type=int, default=None, help='maximum number of transfers')
+    parser.add_argument('--return', dest='return_requested', action='store_true', help='Is it a return flight?')
+    parser.add_argument('--progress', dest='print_progress', action='store_true', help='Display progress bar?')
+    parser.add_argument('--raw', dest='raw_format_requested', action='store_true', help='Get output as raw dictionary?')
+    # 'requested_bags': 0, 'return_requested': False, 'max_transfer': None,
+    # 'print_progress': False, 'raw_format_requested': False
+    # args = parser.parse_args(['example/example1l.csv', 'DHE', 'NIZ', '--progress'])
+    args = parser.parse_args()
+    return args
 
 
 def scan_csv_file_to_memory(file):
     flights_list_out = []
     correct_fieldnames = ['flight_no', 'origin', 'destination', 'departure', 'arrival',
                           'base_price', 'bag_price', 'bags_allowed']
-    with open(file, newline='') as csv_file:
+    with file as csv_file:
         flights = csv.DictReader(csv_file)
         if flights.fieldnames == correct_fieldnames:
             idn = 0
@@ -115,7 +80,7 @@ def generate_flights_network_graph(input_data):
 
 
 def validate_origin_destination_input():
-    if a['origin'] not in network.vertices or a['destination'] not in network.vertices:
+    if a.origin not in network.vertices or a.destination not in network.vertices:
         print('Either origin or destination airport codes are not present in database! (Case sensitive!)')
         input("Press any key to exit.")
         sys.exit(0)
@@ -131,16 +96,16 @@ def convert_to_adjacency_list(graph, start, end):
 
 
 def generate_travel_plans():
-    outbound_adj = convert_to_adjacency_list(network, a['origin'], a['destination'])
+    outbound_adj = convert_to_adjacency_list(network, a.origin, a.destination)
     # print(outbound_adj)
     travel_plans_out = get_all_possibilities_between_origin_destination(
-        outbound_adj, a['origin'], a['destination'], a['max_transfer'])
+        outbound_adj, a.origin, a.destination, a.max_transfer)
     # print(travel_plans_out)
-    if a['return_requested']:
-        inbound_adj = convert_to_adjacency_list(network, a['destination'], a['origin'])
+    if a.return_requested:
+        inbound_adj = convert_to_adjacency_list(network, a.destination, a.origin)
         # print(inbound_adj)
         travel_plans_back = get_all_possibilities_between_origin_destination(
-            inbound_adj, a['destination'], a['origin'], a['max_transfer'])
+            inbound_adj, a.destination, a.origin, a.max_transfer)
         # print(travel_plans_back)
         return_trip = {0: travel_plans_out, 1: travel_plans_back}
         intermediate_step = [[outbound, inbound] for outbound in return_trip[0] for inbound in return_trip[1]]
@@ -175,7 +140,7 @@ def fetch_flights_within_travel_plan(travel_plan, min_bags):
                 if travel_plan_length > 1:
                     second_trip_origin, second_trip_destination = travel_plan[i + 1][0], travel_plan[i + 1][1]
                     for row_2 in flights_list:
-                        if row_2['origin'] == a['destination']:
+                        if row_2['origin'] == a.destination:
                             layover = True      # this does not necessarily mean that it's layover, but the next if
                         else:                   # statement makes it clear
                             layover = False
@@ -204,7 +169,7 @@ def generate_output_list(plans, min_bags):
     for current_travel_plan in plans:
         # print(current_travel_plan)
         i += 1
-        if a['print_progress']:
+        if a.print_progress:
             plans_length = len(plans)
             print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
         fetched_flights = fetch_flights_within_travel_plan(current_travel_plan, min_bags)
@@ -221,8 +186,8 @@ def generate_output_list(plans, min_bags):
                 travel_time += current_flight_time
             # print(flights_found)
             current_dictionary = {'flights': flights_found,
-                                  'origin': a['origin'],
-                                  'destination': a['destination'],
+                                  'origin': a.origin,
+                                  'destination': a.destination,
                                   'bags_allowed': min(bags_allowed),
                                   'bags_count': min_bags,
                                   'total_price': total_price,
@@ -249,14 +214,10 @@ def convert_to_json_format(input_list):
 
 
 if __name__ == '__main__':
-    # development arguments
-    a = {'input_file': 'example/example1l.csv', 'origin': 'DHE', 'destination': 'NIZ', 'requested_bags': 0,
-         'return_requested': False, 'max_transfer': None, 'print_progress': True, 'raw_format_requested': False}
     Graph = namedtuple('Graph', ['vertices', 'edges'])  # create graph namedtuple
-
-    #a = command_line_arguments()
+    a = command_line_arguments_2()
     # print(a)
-    flights_list = scan_csv_file_to_memory(a['input_file'])
+    flights_list = scan_csv_file_to_memory(a.input_file)
     # print(flights_list)
     network = generate_flights_network_graph(flights_list)
     # print(network)
@@ -264,11 +225,11 @@ if __name__ == '__main__':
     travel_plans = generate_travel_plans()
     # print(len(travel_plans))
     # print(travel_plans)
-    output = generate_output_list(travel_plans, a['requested_bags'])
+    output = generate_output_list(travel_plans, a.requested_bags)
     # print(output)
     remove_id_numbers(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
-    if a['raw_format_requested']:
+    if a.raw_format_requested:
         print(ordered_output)
     else:
         json_output = convert_to_json_format(ordered_output)
