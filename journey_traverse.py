@@ -45,7 +45,7 @@ def transfer_lists_traverse(start_list, adj, desired_length):
     for start in start_list:
         current_search = []  # empty every for loop
         dfs(start)
-    print(final_id_list)
+    return final_id_list
 
 
-# transfer_lists_traverse(graph_starts, transfer_lists_3, travel_plan_length_2)
+# print(transfer_lists_traverse(graph_starts, transfer_lists_3, travel_plan_length_2))

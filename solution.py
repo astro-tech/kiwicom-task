@@ -184,10 +184,10 @@ def fetch_flights_within_travel_plan(min_bags):    # (travel_plan, min_bags)
 """
 
 
-def fetch_flights_within_travel_plan_2(min_bags):
-    transfer_lists = {}
+def fetch_flights_within_travel_plan_2(travel_plan, min_bags):
+    transfer_lists = {}     # adjacency list
     graph_starts = []
-    travel_plan = [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ'), ('NIZ', 'DHE')]
+    travel_plan = [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ'), ('NIZ', 'DHE')]  # to be cleared
     travel_plan_length = len(travel_plan)
     if travel_plan_length == 1:
         sectors_to_check = [0]
@@ -211,9 +211,10 @@ def fetch_flights_within_travel_plan_2(min_bags):
                         if row_2['origin'] == second_trip_origin and row_2['destination'] == second_trip_destination and \
                                 row_2['bags_allowed'] >= min_bags and check_within_timeframe(row_1['arrival'], row_2['departure'], layover):
                             transfer_lists[str(row_1['idn'])+row_1['origin']+row_1['destination']].append(str(row_2['idn'])+row_2['origin']+row_2['destination'])
-    print(travel_plan_length)
-    print(transfer_lists)
-    print(graph_starts)
+    # print(transfer_lists)
+    # print(graph_starts)
+    list_of_flights_ids = transfer_lists_traverse(graph_starts, transfer_lists, travel_plan_length)
+    print(list_of_flights_ids)
 
 
 def generate_output_list(plans, min_bags):
@@ -272,7 +273,7 @@ if __name__ == '__main__':
     # print(network)
     validate_origin_destination_input()
     travel_plans = generate_travel_plans()
-    fetch_flights_within_travel_plan_2(0)
+    fetch_flights_within_travel_plan_2(None, 0)
     # print(len(travel_plans))
     # for i in travel_plans:
     #     print(i)
