@@ -187,7 +187,7 @@ def fetch_flights_within_travel_plan(min_bags):    # (travel_plan, min_bags)
 def fetch_flights_within_travel_plan_2(min_bags):
     transfer_lists = {}
     graph_starts = []
-    travel_plan = [('DHE', 'SML')]
+    travel_plan = [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ'), ('NIZ', 'DHE')]
     travel_plan_length = len(travel_plan)
     if travel_plan_length == 1:
         sectors_to_check = [0]
