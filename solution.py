@@ -6,10 +6,10 @@ import sys
 import os
 import json
 # custom imports
-from graph_traverse import get_all_possibilities_between_origin_destination
-from journey_filter import discover_all_combinations
+from airports_traverse import get_all_possibilities_between_origin_destination
+from journey_traverse import transfer_lists_traverse
 from progress_bar import print_progress_bar
-from time_check import check_total_trip_time, check_within_timeframe
+from time_check import check_within_timeframe
 
 
 def command_line_arguments():

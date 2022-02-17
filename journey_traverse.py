@@ -25,7 +25,6 @@ transfer_lists_1 = {'6DHESML': [], '8DHESML': [], '30DHESML': [], '31DHESML': []
 travel_plan_length_1 = 1
 
 
-
 def transfer_lists_traverse(start_list, adj, desired_length):
     final_id_list = []
 
@@ -49,8 +48,4 @@ def transfer_lists_traverse(start_list, adj, desired_length):
     print(final_id_list)
 
 
-transfer_lists_traverse(graph_starts, transfer_lists_3, travel_plan_length_2)
-
-
-
-
+# transfer_lists_traverse(graph_starts, transfer_lists_3, travel_plan_length_2)
