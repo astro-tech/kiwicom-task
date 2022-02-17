@@ -33,3 +33,11 @@ def check_consecutive_flights(list_to_check, destination):  # destination used f
     else:
         return True     # only executed if for loop didn't break
     return False    # only executed if for loop broke
+
+
+def check_total_trip_time(reference, compare):      # to pre filter the flights list before finding variations
+    reference_time = datetime.strptime(reference, '%Y-%m-%dT%H:%M:%S')
+    compare_time = datetime.strptime(compare, '%Y-%m-%dT%H:%M:%S')
+    if reference_time < compare_time:
+        return True
+    return False

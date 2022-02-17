@@ -9,6 +9,7 @@ import json
 from graph_traverse import get_all_possibilities_between_origin_destination
 from journey_filter import discover_all_combinations
 from progress_bar import print_progress_bar
+from time_check import check_total_trip_time, check_within_timeframe
 
 
 def command_line_arguments():
@@ -70,6 +71,7 @@ def scan_csv_file_to_memory(file):
     with open(file, newline='') as csv_file:
         flights = csv.DictReader(csv_file)
         if flights.fieldnames == correct_fieldnames:
+            idn = 0
             for row in flights:
                 try:
                     datetime.strptime(row['departure'], '%Y-%m-%dT%H:%M:%S')
@@ -87,7 +89,9 @@ def scan_csv_file_to_memory(file):
                     print('Enter valid number for base_price, bag_price, bags_allowed')
                     input("Press any key to exit.")
                     sys.exit(0)
-                # print(row)
+                row['idn'] = idn    # unique id number is added to each row for later use
+                idn += 1
+                print(row)
                 flights_list_out.append(row)
         else:
             print('The CSV file fieldnames shall be: ' + str(correct_fieldnames))
@@ -139,7 +143,7 @@ def generate_travel_plans():
             inbound_adj, a['destination'], a['origin'], a['max_transfer'])
         # print(travel_plans_back)
         return_trip = {0: travel_plans_out, 1: travel_plans_back}
-        intermediate_step = discover_all_combinations(return_trip, a['destination'], searching_return=True)
+        intermediate_step = [[outbound, inbound] for outbound in return_trip[0] for inbound in return_trip[1]]
         # print(intermediate_step)
         travel_plans_return = []  # merging outbound and inbound solutions
         for i in intermediate_step:
@@ -151,20 +155,61 @@ def generate_travel_plans():
         return travel_plans_return
     return travel_plans_out
 
+"""
+def fetch_flights_within_travel_plan(min_bags):    # (travel_plan, min_bags)
+    travel_plan = [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ')]
+    first_trip_origin, first_trip_destination = travel_plan[0][0], travel_plan[0][1]
+    possible_journeys = []
+    dictionary_counter = 0
+    for row_1 in flights_list:      # outer loop for iterating first leg flights
+        if row_1['origin'] == first_trip_origin and row_1['destination'] == first_trip_destination and \
+                row_1['bags_allowed'] >= min_bags:
+            possible_journeys.append({0: [row_1]})
+            if len(travel_plan) > 1:
+                first_trip_arrival = row_1['arrival']
+                travel_plan_slice = travel_plan[1:]
+                leg_counter = 1
+                for leg in travel_plan_slice:   # inner loop for iterating other sectors
+                    possible_journeys[dictionary_counter][leg_counter] = []
+                    current_origin, current_destination = leg[0], leg[1]
+                    for row_2 in flights_list:
+                        if row_2['origin'] == current_origin and row_2['destination'] == current_destination and \
+                                row_2['bags_allowed'] >= min_bags and \
+                                check_total_trip_time(first_trip_arrival, row_2['departure']):
+                            possible_journeys[dictionary_counter][leg_counter].append(row_2)
+                    leg_counter += 1
+            dictionary_counter += 1
+    print(possible_journeys)
+    return #discover_all_combinations(possible_journeys, a['destination'])
+"""
 
-def fetch_flights_within_travel_plan(travel_plan, min_bags):
-    possible_journeys = {}
-    leg_counter = 0
-    for leg in travel_plan:
-        possible_journeys[leg_counter] = []
-        current_origin, current_destination = leg[0], leg[1]
-        for row in flights_list:
-            if row['origin'] == current_origin and row['destination'] == current_destination and \
-                    row['bags_allowed'] >= min_bags:
-                possible_journeys[leg_counter].append(row)
-        leg_counter += 1
-    # print(possible_journeys)
-    return discover_all_combinations(possible_journeys, a['destination'])
+
+def fetch_flights_within_travel_plan_2(min_bags):
+    transfer_lists = {}
+    graph_starts = []
+    travel_plan = [('DHE', 'SML'), ('SML', 'NRX'), ('NRX', 'NIZ'), ('NIZ', 'DHE')]      # todo if only direct flight?
+    travel_plan_length = len(travel_plan)
+    for i in range(len(travel_plan) - 1):
+        first_trip_origin, first_trip_destination = travel_plan[i][0], travel_plan[i][1]
+        for row_1 in flights_list:
+            if row_1['origin'] == first_trip_origin and row_1['destination'] == first_trip_destination and \
+                    row_1['bags_allowed'] >= min_bags:
+                transfer_lists[str(row_1['idn'])+row_1['origin']+row_1['destination']] = []
+                if i == 0:      # to collect the first leg id's as starting points for the graph traversal
+                    graph_starts.append(str(row_1['idn'])+row_1['origin']+row_1['destination'])
+                # here a condition is needed for direct flight
+                second_trip_origin, second_trip_destination = travel_plan[i + 1][0], travel_plan[i + 1][1]
+                for row_2 in flights_list:
+                    if row_2['origin'] == a['destination']:
+                        layover = True      # this does not necessarily mean that it's layover, but the next if
+                    else:                   # statement makes it clear
+                        layover = False
+                    if row_2['origin'] == second_trip_origin and row_2['destination'] == second_trip_destination and \
+                            row_2['bags_allowed'] >= min_bags and check_within_timeframe(row_1['arrival'], row_2['departure'], layover):
+                        transfer_lists[str(row_1['idn'])+row_1['origin']+row_1['destination']].append(str(row_2['idn'])+row_2['origin']+row_2['destination'])
+    print(travel_plan_length)
+    print(transfer_lists)
+    print(graph_starts)
 
 
 def generate_output_list(plans, min_bags):
@@ -176,7 +221,7 @@ def generate_output_list(plans, min_bags):
         if a['print_progress']:
             plans_length = len(plans)
             print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
-        fetched_flights = fetch_flights_within_travel_plan(current_travel_plan, min_bags)
+        fetched_flights = fetch_flights_within_travel_plan_2(current_travel_plan, min_bags)
         for flights_found in fetched_flights:
             bags_allowed = []
             total_price = 0.0
@@ -211,11 +256,11 @@ def convert_to_json_format(input_list):
 
 if __name__ == '__main__':
     # development arguments
-    # a = {'input_file': 'example/example0.csv', 'origin': 'WIW', 'destination': 'RFZ', 'requested_bags': 0,
-    #      'return_requested': True, 'max_transfer': 0, 'print_progress': True, 'raw_format_requested': True}
+    a = {'input_file': 'example/example1l.csv', 'origin': 'DHE', 'destination': 'NIZ', 'requested_bags': 0,
+         'return_requested': False, 'max_transfer': None, 'print_progress': True, 'raw_format_requested': True}
     Graph = namedtuple('Graph', ['vertices', 'edges'])  # create graph namedtuple
 
-    a = command_line_arguments()
+    #a = command_line_arguments()
     # print(a)
     flights_list = scan_csv_file_to_memory(a['input_file'])
     # print(flights_list)
@@ -223,12 +268,16 @@ if __name__ == '__main__':
     # print(network)
     validate_origin_destination_input()
     travel_plans = generate_travel_plans()
-    # print(travel_plans)
-    output = generate_output_list(travel_plans, a['requested_bags'])
+    fetch_flights_within_travel_plan_2(0)
+    # print(len(travel_plans))
+    # for i in travel_plans:
+    #     print(i)
+    # # print(travel_plans)
+    """output = generate_output_list(travel_plans, a['requested_bags'])
     # print(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
     if a['raw_format_requested']:
         print(ordered_output)
     else:
         json_output = convert_to_json_format(ordered_output)
-        print(json_output)
+        print(json_output)"""
