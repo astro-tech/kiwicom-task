@@ -1,3 +1,8 @@
+import colorama
+# https://stackoverflow.com/questions/6840420/rewrite-multiple-lines-in-the-console
+colorama.init()     # this enables \033[A characters
+
+
 # https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
 def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', print_end="\r"):
     """
@@ -15,7 +20,15 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filled_length = int(length * iteration // total)
     bar = fill * filled_length + '-' * (length - filled_length)
-    print(f'\r{prefix}\n |{bar}| {percent}% {suffix}', end=print_end)
+    print(f'\033[K{prefix}')    # \033[K to clear line
+    print(f'|{bar}| {percent}% {suffix}', end='\r\033[A')   # \033[A to move up one line
     # Print New Line on Complete
     if iteration == total:
-        print()
+        print('\033[KComplete!')
+        print('\033[K', end='\r')
+
+# old version
+# print(f'\r{prefix}\n |{bar}| {percent}% {suffix}', end=print_end)
+#     # Print New Line on Complete
+#     if iteration == total:
+#         print()

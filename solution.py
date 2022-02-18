@@ -26,7 +26,7 @@ def command_line_arguments():
     # 'requested_bags': 0, 'return_requested': False, 'max_transfer': None,
     # 'print_progress': False, 'raw_format_requested': False
     # bugfix: 'example/example3.csv', 'ZRW', 'BPZ', '--progress'
-    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--transfer=3', '--progress', '--return'])
+    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--progress', '--return', '--transfer=3'])
     # args = parser.parse_args()
     return args
 
