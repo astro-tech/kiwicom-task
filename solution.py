@@ -28,7 +28,7 @@ def command_line_arguments():
     # 'requested_bags': 0, 'return_requested': False, 'max_transfer': None,
     # 'print_progress': False, 'raw_format_requested': False, 'timing_requested': False
     # bugfix: 'example/example3.csv', 'ZRW', 'BPZ', '--progress'
-    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--progress', '--return', '--transfer=10', '--timer'])
+    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--timer', '--transfer=4', '--progress'])
     # args = parser.parse_args()
     return args
 
@@ -263,7 +263,7 @@ if __name__ == '__main__':
     travel_plans = generate_travel_plans()
     if a.print_progress:
         if not a.return_requested:
-            print(f'Found {str(len(travel_plans))} possible combinations.')
+            print(f'Found {str(len(travel_plans[0]))} possible combinations.')
         else:
             print(f'Found {str(len(travel_plans[0]))} possible outbound combinations.')
             print(f'Found {str(len(travel_plans[1]))} possible inbound combinations.')
