@@ -24,8 +24,8 @@ def command_line_arguments_2():
     parser.add_argument('--raw', dest='raw_format_requested', action='store_true', help='Get output as raw dictionary?')
     # 'requested_bags': 0, 'return_requested': False, 'max_transfer': None,
     # 'print_progress': False, 'raw_format_requested': False
-    # args = parser.parse_args(['example/example1l.csv', 'DHE', 'NIZ', '--progress'])
-    args = parser.parse_args()
+    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--return'])
+    # args = parser.parse_args()
     return args
 
 
@@ -124,6 +124,7 @@ def generate_travel_plans():
 def fetch_flights_within_travel_plan(travel_plan, min_bags):
     transfer_lists = {}     # adjacency list
     graph_starts = []
+    travel_plan = [('ZRW', 'WTN'), ('WTN', 'VVH'), ('VVH', 'BPZ'), ('BPZ', 'NNB'), ('NNB', 'JBN'), ('JBN', 'EZO'), ('EZO', 'WTN'), ('WTN', 'VVH'), ('VVH', 'WUE'), ('WUE', 'ZRW')]
     travel_plan_length = len(travel_plan)
     if travel_plan_length == 1:
         sectors_to_check = [0]
@@ -150,6 +151,7 @@ def fetch_flights_within_travel_plan(travel_plan, min_bags):
                             transfer_lists[row_1['idn']].append(row_2['idn'])
     # print(transfer_lists)
     # print(graph_starts)
+    # print(travel_plan_length)
     list_of_flights_ids = transfer_lists_traverse(graph_starts, transfer_lists, travel_plan_length)
     # print(list_of_flights_ids)
     list_of_flights = []

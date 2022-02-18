@@ -45,6 +45,7 @@ To display the command line help screen use: -h or --help
 
 ### Additional notes
 
+In case of return trip search the layover rule is changed to the following: the departing flight from the destination can only be 1 hour after the inbound flight's arrival time.
 If the total number of transfers in each trip (including return trips) are more than 3, the program has performance issues.
 This is down to the sheer number of combinations discovered. Nevertheless, in case of a realistic 1 or 2 transfers are
 given, it handles the task. The display of current progress can be useful in demanding cases.
