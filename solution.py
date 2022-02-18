@@ -24,7 +24,8 @@ def command_line_arguments_2():
     parser.add_argument('--raw', dest='raw_format_requested', action='store_true', help='Get output as raw dictionary?')
     # 'requested_bags': 0, 'return_requested': False, 'max_transfer': None,
     # 'print_progress': False, 'raw_format_requested': False
-    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--raw', '--progress'])
+    # bugfix: 'example/example3.csv', 'ZRW', 'BPZ', '--progress'
+    args = parser.parse_args(['example/example0.csv', 'WIW', 'RFZ', '--progress'])
     # args = parser.parse_args()
     return args
 
@@ -96,32 +97,22 @@ def convert_to_adjacency_list(graph, start, end):
 
 
 def generate_travel_plans():
+    travel_plans_all = []
     outbound_adj = convert_to_adjacency_list(network, a.origin, a.destination)
     # print(outbound_adj)
     travel_plans_out = get_all_possibilities_between_origin_destination(
         outbound_adj, a.origin, a.destination, a.max_transfer)
-    # print(travel_plans_out)
+    travel_plans_all.append(travel_plans_out)
     if a.return_requested:
         inbound_adj = convert_to_adjacency_list(network, a.destination, a.origin)
         # print(inbound_adj)
         travel_plans_back = get_all_possibilities_between_origin_destination(
             inbound_adj, a.destination, a.origin, a.max_transfer)
-        # print(travel_plans_back)
-        return_trip = {0: travel_plans_out, 1: travel_plans_back}
-        intermediate_step = [[outbound, inbound] for outbound in return_trip[0] for inbound in return_trip[1]]
-        # print(intermediate_step)
-        travel_plans_return = []  # merging outbound and inbound solutions
-        for i in intermediate_step:
-            current_list = []
-            for j in i:
-                for k in j:
-                    current_list.append(k)
-            travel_plans_return.append(current_list[:])
-        return travel_plans_return
-    return travel_plans_out
+        travel_plans_all.append(travel_plans_back)
+    return travel_plans_all
 
 
-def fetch_flights_within_travel_plan(travel_plan, min_bags):
+def fetch_flight_ids_within_travel_plan(travel_plan, min_bags):
     transfer_lists = {}     # adjacency list
     graph_starts = []
     travel_plan_length = len(travel_plan)
@@ -140,13 +131,9 @@ def fetch_flights_within_travel_plan(travel_plan, min_bags):
                 if travel_plan_length > 1:
                     second_trip_origin, second_trip_destination = travel_plan[i + 1][0], travel_plan[i + 1][1]
                     for row_2 in flights_list:
-                        if row_2['origin'] == a.destination:
-                            layover = True      # this does not necessarily mean that it's layover, but the next if
-                        else:                   # statement makes it clear
-                            layover = False
                         if row_2['origin'] == second_trip_origin and row_2['destination'] == second_trip_destination \
                                 and row_2['bags_allowed'] >= min_bags \
-                                and check_within_timeframe(row_1['arrival'], row_2['departure'], layover):
+                                and check_within_timeframe(row_1['arrival'], row_2['departure'], False):  # layover=F
                             transfer_lists[row_1['idn']].append(row_2['idn'])
     # print(transfer_lists)
     # print(graph_starts)
@@ -167,37 +154,44 @@ def convert_flight_ids_to_flights(input_list):
     return list_of_flights
 
 
-def generate_output_list(plans, min_bags):
-    output_list = []
+def assign_flights_to_travel_plans(plans, min_bags):
+    fetched_flight_ids = []
     i = 0
-    for current_travel_plan in plans:
-        # print(current_travel_plan)
-        i += 1
-        if a.print_progress:
-            plans_length = len(plans)
-            print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
-        fetched_flight_ids = fetch_flights_within_travel_plan(current_travel_plan, min_bags)
+    if not a.return_requested:
+        for current_travel_plan in plans[0]:    # 0 is outbound travel plans
+            i += 1
+            if a.print_progress:
+                plans_length = len(plans[0])
+                print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
+            ids_list = fetch_flight_ids_within_travel_plan(current_travel_plan, min_bags)
+            for item in ids_list:   # to extract inner list
+                fetched_flight_ids.append(item)
         fetched_flights = convert_flight_ids_to_flights(fetched_flight_ids)
-        for flights_found in fetched_flights:
-            bags_allowed = []
-            total_price = 0.0
-            travel_time = timedelta(hours=0)
-            for flight_leg in flights_found:
-                # print(flight_leg)
-                bags_allowed.append(flight_leg['bags_allowed'])
-                total_price += flight_leg['base_price'] + flight_leg['bag_price']  # not sure if bag_price * bag_nbr
-                current_flight_time = datetime.strptime(flight_leg['arrival'], '%Y-%m-%dT%H:%M:%S') \
-                    - datetime.strptime(flight_leg['departure'], '%Y-%m-%dT%H:%M:%S')
-                travel_time += current_flight_time
-            # print(flights_found)
-            current_dictionary = {'flights': flights_found,
-                                  'origin': a.origin,
-                                  'destination': a.destination,
-                                  'bags_allowed': min(bags_allowed),
-                                  'bags_count': min_bags,
-                                  'total_price': total_price,
-                                  'travel_time': str(travel_time)}
-            output_list.append(current_dictionary)
+        return fetched_flights
+
+
+def generate_output_list(fetched_flights, min_bags):
+    output_list = []
+    for flights_found in fetched_flights:
+        bags_allowed = []
+        total_price = 0.0
+        travel_time = timedelta(hours=0)
+        for flight_leg in flights_found:
+            # print(flight_leg)
+            bags_allowed.append(flight_leg['bags_allowed'])
+            total_price += flight_leg['base_price'] + flight_leg['bag_price']  # not sure if bag_price * bag_nbr
+            current_flight_time = datetime.strptime(flight_leg['arrival'], '%Y-%m-%dT%H:%M:%S') \
+                - datetime.strptime(flight_leg['departure'], '%Y-%m-%dT%H:%M:%S')
+            travel_time += current_flight_time
+        # print(flights_found)
+        current_dictionary = {'flights': flights_found,
+                              'origin': a.origin,
+                              'destination': a.destination,
+                              'bags_allowed': min(bags_allowed),
+                              'bags_count': min_bags,
+                              'total_price': total_price,
+                              'travel_time': str(travel_time)}
+        output_list.append(current_dictionary)
     return output_list
 
 
@@ -230,7 +224,9 @@ if __name__ == '__main__':
     travel_plans = generate_travel_plans()
     # print(len(travel_plans))
     # print(travel_plans)
-    output = generate_output_list(travel_plans, a.requested_bags)
+    journey_list = assign_flights_to_travel_plans(travel_plans, a.requested_bags)
+    # print(journey_list)
+    output = generate_output_list(journey_list, a.requested_bags)
     # print(output)
     remove_id_numbers(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
