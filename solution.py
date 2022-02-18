@@ -26,7 +26,7 @@ def command_line_arguments_2():
     # 'requested_bags': 0, 'return_requested': False, 'max_transfer': None,
     # 'print_progress': False, 'raw_format_requested': False
     # bugfix: 'example/example3.csv', 'ZRW', 'BPZ', '--progress'
-    args = parser.parse_args(['example/example0.csv', 'WIW', 'RFZ', '--progress', '--return'])
+    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ'])
     # args = parser.parse_args()
     return args
 
@@ -98,6 +98,8 @@ def convert_to_adjacency_list(graph, start, end):
 
 
 def generate_travel_plans():
+    if a.print_progress:
+        print('Discovering possible combinations...')
     travel_plans_all = []
     outbound_adj = convert_to_adjacency_list(network, a.origin, a.destination)
     # print(outbound_adj)
@@ -110,6 +112,8 @@ def generate_travel_plans():
         travel_plans_back = get_all_possibilities_between_origin_destination(
             inbound_adj, a.destination, a.origin, a.max_transfer)
         travel_plans_all.append(travel_plans_back)
+    if a.print_progress:
+        print('Done!')
     return travel_plans_all
 
 
@@ -164,7 +168,8 @@ def assign_flights_to_travel_plans(plans, min_bags):
             i += 1
             if a.print_progress:
                 plans_length = len(plans[plans_number])
-                print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
+                print_progress_bar(
+                    i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
             ids_list = fetch_flight_ids_within_travel_plan(current_travel_plan, min_bags)
             for item in ids_list:   # to extract inner list
                 fetched_flight_ids[dictionary_key].append(item)
@@ -176,12 +181,16 @@ def assign_flights_to_travel_plans(plans, min_bags):
         return fetched_flights
     else:
         outbound_or_inbound_loop(1, 'in')
+        if a.print_progress:
+            print('Merging outbound and inbound solutions...')
         return_adjacency_list = check_return_flight_compatibility()
         # print(return_adjacency_list)
         merged_fetched_flight_ids = merge_outbound_with_inbound(fetched_flight_ids, return_adjacency_list)
         # print(merged_fetched_flight_ids)
         merged_fetched_flights = convert_flight_ids_to_flights(merged_fetched_flight_ids)
         # print(merged_fetched_flights)
+        if a.print_progress:
+            print('Done!')
         return merged_fetched_flights
 
 
@@ -249,7 +258,12 @@ if __name__ == '__main__':
     # print(network)
     validate_origin_destination_input()
     travel_plans = generate_travel_plans()
-    # print(len(travel_plans))
+    if a.print_progress:
+        if not a.return_requested:
+            print(f'Found {str(len(travel_plans))} possible routings.')
+        else:
+            print(f'Found {str(len(travel_plans[0]))} possible outbound combinations.')
+            print(f'Found {str(len(travel_plans[1]))} possible inbound combinations.')
     # print(travel_plans)
     journey_list = assign_flights_to_travel_plans(travel_plans, a.requested_bags)
     # print(journey_list)
