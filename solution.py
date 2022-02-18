@@ -24,7 +24,7 @@ def command_line_arguments_2():
     parser.add_argument('--raw', dest='raw_format_requested', action='store_true', help='Get output as raw dictionary?')
     # 'requested_bags': 0, 'return_requested': False, 'max_transfer': None,
     # 'print_progress': False, 'raw_format_requested': False
-    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--return'])
+    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--raw', '--progress'])
     # args = parser.parse_args()
     return args
 
@@ -124,7 +124,6 @@ def generate_travel_plans():
 def fetch_flights_within_travel_plan(travel_plan, min_bags):
     transfer_lists = {}     # adjacency list
     graph_starts = []
-    travel_plan = [('ZRW', 'WTN'), ('WTN', 'VVH'), ('VVH', 'BPZ'), ('BPZ', 'NNB'), ('NNB', 'JBN'), ('JBN', 'EZO'), ('EZO', 'WTN'), ('WTN', 'VVH'), ('VVH', 'WUE'), ('WUE', 'ZRW')]
     travel_plan_length = len(travel_plan)
     if travel_plan_length == 1:
         sectors_to_check = [0]
@@ -153,9 +152,12 @@ def fetch_flights_within_travel_plan(travel_plan, min_bags):
     # print(graph_starts)
     # print(travel_plan_length)
     list_of_flights_ids = transfer_lists_traverse(graph_starts, transfer_lists, travel_plan_length)
-    # print(list_of_flights_ids)
+    return list_of_flights_ids
+
+
+def convert_flight_ids_to_flights(input_list):
     list_of_flights = []
-    for current_list in list_of_flights_ids:        # here the id numbers are substituted for the flights
+    for current_list in input_list:
         current_list_of_flights = []
         for current_id in current_list:
             for row in flights_list:
@@ -174,7 +176,8 @@ def generate_output_list(plans, min_bags):
         if a.print_progress:
             plans_length = len(plans)
             print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
-        fetched_flights = fetch_flights_within_travel_plan(current_travel_plan, min_bags)
+        fetched_flight_ids = fetch_flights_within_travel_plan(current_travel_plan, min_bags)
+        fetched_flights = convert_flight_ids_to_flights(fetched_flight_ids)
         for flights_found in fetched_flights:
             bags_allowed = []
             total_price = 0.0
