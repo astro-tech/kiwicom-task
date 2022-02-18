@@ -37,6 +37,7 @@ The following table describes how to use the arguments:
 | `return_requested`    | boolean  | Is it a return flight?   | Optional (defaults to False) | --return              |
 | `print_progress`      | boolean  | Display progress bar?    | Optional (defaults to False) | --progress            |
 | `raw_format_requested`| boolean  | Get output as dictionary?| Optional (defaults to False) | --raw                 |
+| `timing_requested`    | boolean  | To measure performance   | Optional (defaults to False) | --timer               |
 
 Optional arguments can be given in random order.
 To display the command line help screen use: -h or --help

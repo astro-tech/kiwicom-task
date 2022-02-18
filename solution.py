@@ -5,6 +5,7 @@ from operator import itemgetter
 import argparse
 import sys
 import json
+import time
 # custom imports
 from airports_traverse import get_all_possibilities_between_origin_destination
 from journey_traverse import transfer_lists_traverse
@@ -23,10 +24,11 @@ def command_line_arguments():
     parser.add_argument('--return', dest='return_requested', action='store_true', help='Is it a return flight?')
     parser.add_argument('--progress', dest='print_progress', action='store_true', help='Display progress bar?')
     parser.add_argument('--raw', dest='raw_format_requested', action='store_true', help='Get output as raw dictionary?')
+    parser.add_argument('--timer', dest='timing_requested', action='store_true', help='Measure time to complete task')
     # 'requested_bags': 0, 'return_requested': False, 'max_transfer': None,
-    # 'print_progress': False, 'raw_format_requested': False
+    # 'print_progress': False, 'raw_format_requested': False, 'timing_requested': False
     # bugfix: 'example/example3.csv', 'ZRW', 'BPZ', '--progress'
-    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--progress', '--return', '--transfer=3'])
+    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--progress', '--return', '--transfer=10', '--timer'])
     # args = parser.parse_args()
     return args
 
@@ -113,7 +115,7 @@ def generate_travel_plans():
             inbound_adj, a.destination, a.origin, a.max_transfer)
         travel_plans_all.append(travel_plans_back)
     if a.print_progress:
-        print('Done!')
+        print('Complete!')
     return travel_plans_all
 
 
@@ -148,7 +150,7 @@ def assign_flights_to_travel_plans(plans, min_bags):
         merged_fetched_flights = convert_flight_ids_to_flights(merged_fetched_flight_ids)
         # print(merged_fetched_flights)
         if a.print_progress:
-            print('Done!')
+            print('Complete!')
         return merged_fetched_flights
 
 
@@ -249,6 +251,7 @@ def convert_to_json_format(input_list):
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     Graph = namedtuple('Graph', ['vertices', 'edges'])  # create graph namedtuple
     a = command_line_arguments()
     # print(a)
@@ -271,6 +274,9 @@ if __name__ == '__main__':
     # print(output)
     remove_id_numbers(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
+    if a.timing_requested:
+        print("Process finished in: %s seconds" % (time.time() - start_time))
+        input("Press any key to display results.")
     if a.raw_format_requested:
         print(ordered_output)
     else:
