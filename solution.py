@@ -25,7 +25,7 @@ def command_line_arguments_2():
     # 'requested_bags': 0, 'return_requested': False, 'max_transfer': None,
     # 'print_progress': False, 'raw_format_requested': False
     # bugfix: 'example/example3.csv', 'ZRW', 'BPZ', '--progress'
-    args = parser.parse_args(['example/example0.csv', 'WIW', 'RFZ', '--progress'])
+    args = parser.parse_args(['example/example0.csv', 'WIW', 'RFZ', '--progress', '--return'])
     # args = parser.parse_args()
     return args
 
@@ -175,11 +175,22 @@ def assign_flights_to_travel_plans(plans, min_bags):
         return fetched_flights
     else:
         outbound_or_inbound_loop(1, 'in')
+        return_adjacency_list = check_return_flight_compatibility()
+        print(return_adjacency_list)
 
-    # print(fetched_flight_ids)
+    print(fetched_flight_ids)
 
 
-
+def check_return_flight_compatibility():
+    transfer_lists = {}  # adjacency list
+    for row_1 in flights_list:
+        if row_1['destination'] == a.destination:
+            transfer_lists[row_1['idn']] = []
+            for row_2 in flights_list:
+                if row_2['origin'] == a.destination \
+                        and check_within_timeframe(row_1['arrival'], row_2['departure'], True):  # layover=T
+                    transfer_lists[row_1['idn']].append(row_2['idn'])
+    return transfer_lists
 
 
 def generate_output_list(fetched_flights, min_bags):
@@ -238,7 +249,7 @@ if __name__ == '__main__':
     # print(travel_plans)
     journey_list = assign_flights_to_travel_plans(travel_plans, a.requested_bags)
     # print(journey_list)
-    output = generate_output_list(journey_list, a.requested_bags)
+"""    output = generate_output_list(journey_list, a.requested_bags)
     # print(output)
     remove_id_numbers(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
@@ -246,4 +257,4 @@ if __name__ == '__main__':
         print(ordered_output)
     else:
         json_output = convert_to_json_format(ordered_output)
-        print(json_output)
+        print(json_output)"""
