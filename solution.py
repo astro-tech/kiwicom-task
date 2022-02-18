@@ -10,6 +10,7 @@ from airports_traverse import get_all_possibilities_between_origin_destination
 from journey_traverse import transfer_lists_traverse
 from progress_bar import print_progress_bar
 from time_check import check_within_timeframe
+from merge_return import merge_outbound_with_inbound
 
 
 def command_line_arguments_2():
@@ -176,9 +177,12 @@ def assign_flights_to_travel_plans(plans, min_bags):
     else:
         outbound_or_inbound_loop(1, 'in')
         return_adjacency_list = check_return_flight_compatibility()
-        print(return_adjacency_list)
-
-    print(fetched_flight_ids)
+        # print(return_adjacency_list)
+        merged_fetched_flight_ids = merge_outbound_with_inbound(fetched_flight_ids, return_adjacency_list)
+        # print(merged_fetched_flight_ids)
+        merged_fetched_flights = convert_flight_ids_to_flights(merged_fetched_flight_ids)
+        # print(merged_fetched_flights)
+        return merged_fetched_flights
 
 
 def check_return_flight_compatibility():
@@ -249,7 +253,7 @@ if __name__ == '__main__':
     # print(travel_plans)
     journey_list = assign_flights_to_travel_plans(travel_plans, a.requested_bags)
     # print(journey_list)
-"""    output = generate_output_list(journey_list, a.requested_bags)
+    output = generate_output_list(journey_list, a.requested_bags)
     # print(output)
     remove_id_numbers(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
@@ -257,4 +261,4 @@ if __name__ == '__main__':
         print(ordered_output)
     else:
         json_output = convert_to_json_format(ordered_output)
-        print(json_output)"""
+        print(json_output)
