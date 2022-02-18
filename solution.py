@@ -155,19 +155,31 @@ def convert_flight_ids_to_flights(input_list):
 
 
 def assign_flights_to_travel_plans(plans, min_bags):
-    fetched_flight_ids = []
-    i = 0
-    if not a.return_requested:
-        for current_travel_plan in plans[0]:    # 0 is outbound travel plans
+    fetched_flight_ids = {'out': [], 'in': []}
+
+    def outbound_or_inbound_loop(plans_number, dictionary_key):
+        i = 0
+        for current_travel_plan in plans[plans_number]:    # 0 is outbound travel plans
             i += 1
             if a.print_progress:
-                plans_length = len(plans[0])
+                plans_length = len(plans[plans_number])
                 print_progress_bar(i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
             ids_list = fetch_flight_ids_within_travel_plan(current_travel_plan, min_bags)
             for item in ids_list:   # to extract inner list
-                fetched_flight_ids.append(item)
-        fetched_flights = convert_flight_ids_to_flights(fetched_flight_ids)
+                fetched_flight_ids[dictionary_key].append(item)
+
+    outbound_or_inbound_loop(0, 'out')
+    if not a.return_requested:
+        # print(fetched_flight_ids['out'])
+        fetched_flights = convert_flight_ids_to_flights(fetched_flight_ids['out'])
         return fetched_flights
+    else:
+        outbound_or_inbound_loop(1, 'in')
+
+    # print(fetched_flight_ids)
+
+
+
 
 
 def generate_output_list(fetched_flights, min_bags):
