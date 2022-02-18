@@ -26,7 +26,7 @@ def command_line_arguments():
     # 'requested_bags': 0, 'return_requested': False, 'max_transfer': None,
     # 'print_progress': False, 'raw_format_requested': False
     # bugfix: 'example/example3.csv', 'ZRW', 'BPZ', '--progress'
-    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ'])
+    args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--transfer=3', '--progress', '--return'])
     # args = parser.parse_args()
     return args
 
@@ -117,6 +117,41 @@ def generate_travel_plans():
     return travel_plans_all
 
 
+def assign_flights_to_travel_plans(plans, min_bags):
+    fetched_flight_ids = {'out': [], 'in': []}
+
+    def outbound_or_inbound_loop(plans_number, dictionary_key):
+        i = 0
+        for current_travel_plan in plans[plans_number]:    # 0 is outbound travel plans
+            i += 1
+            if a.print_progress:
+                plans_length = len(plans[plans_number])
+                print_progress_bar(
+                    i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
+            ids_list = fetch_flight_ids_within_travel_plan(current_travel_plan, min_bags)
+            for item in ids_list:   # to extract inner list
+                fetched_flight_ids[dictionary_key].append(item)
+
+    outbound_or_inbound_loop(0, 'out')      # outbound case, this is always used
+    if not a.return_requested:
+        # print(fetched_flight_ids['out'])
+        fetched_flights = convert_flight_ids_to_flights(fetched_flight_ids['out'])
+        return fetched_flights
+    else:
+        outbound_or_inbound_loop(1, 'in')   # in case of return the outbound cases are amended with inbound cases
+        if a.print_progress:
+            print('Merging outbound and inbound solutions...')
+        return_adjacency_list = check_return_flight_compatibility()
+        # print(return_adjacency_list)
+        merged_fetched_flight_ids = merge_outbound_with_inbound(fetched_flight_ids, return_adjacency_list)
+        # print(merged_fetched_flight_ids)
+        merged_fetched_flights = convert_flight_ids_to_flights(merged_fetched_flight_ids)
+        # print(merged_fetched_flights)
+        if a.print_progress:
+            print('Done!')
+        return merged_fetched_flights
+
+
 def fetch_flight_ids_within_travel_plan(travel_plan, min_bags):
     transfer_lists = {}     # adjacency list
     graph_starts = []
@@ -157,41 +192,6 @@ def convert_flight_ids_to_flights(input_list):
                     current_list_of_flights.append(row)
         list_of_flights.append(current_list_of_flights[:])
     return list_of_flights
-
-
-def assign_flights_to_travel_plans(plans, min_bags):
-    fetched_flight_ids = {'out': [], 'in': []}
-
-    def outbound_or_inbound_loop(plans_number, dictionary_key):
-        i = 0
-        for current_travel_plan in plans[plans_number]:    # 0 is outbound travel plans
-            i += 1
-            if a.print_progress:
-                plans_length = len(plans[plans_number])
-                print_progress_bar(
-                    i, plans_length, prefix='Currently evaluating: ' + str(current_travel_plan), length=50)
-            ids_list = fetch_flight_ids_within_travel_plan(current_travel_plan, min_bags)
-            for item in ids_list:   # to extract inner list
-                fetched_flight_ids[dictionary_key].append(item)
-
-    outbound_or_inbound_loop(0, 'out')
-    if not a.return_requested:
-        # print(fetched_flight_ids['out'])
-        fetched_flights = convert_flight_ids_to_flights(fetched_flight_ids['out'])
-        return fetched_flights
-    else:
-        outbound_or_inbound_loop(1, 'in')
-        if a.print_progress:
-            print('Merging outbound and inbound solutions...')
-        return_adjacency_list = check_return_flight_compatibility()
-        # print(return_adjacency_list)
-        merged_fetched_flight_ids = merge_outbound_with_inbound(fetched_flight_ids, return_adjacency_list)
-        # print(merged_fetched_flight_ids)
-        merged_fetched_flights = convert_flight_ids_to_flights(merged_fetched_flight_ids)
-        # print(merged_fetched_flights)
-        if a.print_progress:
-            print('Done!')
-        return merged_fetched_flights
 
 
 def check_return_flight_compatibility():
