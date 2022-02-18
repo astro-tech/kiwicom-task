@@ -13,7 +13,7 @@ from time_check import check_within_timeframe
 from merge_return import merge_outbound_with_inbound
 
 
-def command_line_arguments_2():
+def command_line_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('input_file', type=argparse.FileType('r'), help='input CSV file location')
     parser.add_argument('origin', help='origin airport code')
@@ -250,7 +250,7 @@ def convert_to_json_format(input_list):
 
 if __name__ == '__main__':
     Graph = namedtuple('Graph', ['vertices', 'edges'])  # create graph namedtuple
-    a = command_line_arguments_2()
+    a = command_line_arguments()
     # print(a)
     flights_list = scan_csv_file_to_memory(a.input_file)
     # print(flights_list)
@@ -260,7 +260,7 @@ if __name__ == '__main__':
     travel_plans = generate_travel_plans()
     if a.print_progress:
         if not a.return_requested:
-            print(f'Found {str(len(travel_plans))} possible routings.')
+            print(f'Found {str(len(travel_plans))} possible combinations.')
         else:
             print(f'Found {str(len(travel_plans[0]))} possible outbound combinations.')
             print(f'Found {str(len(travel_plans[1]))} possible inbound combinations.')

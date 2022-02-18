@@ -15,9 +15,9 @@ Pipeline:
 - The `origin` and `destination` arguments are validated at this stage.
 - Adjacency lists are generated from the Graph object. Outbound always, inbound only in case of return trip.
 - Graph traversal is conducted by a depth-first search (DFS) algorithm. The `transfer` filter is applied here. The result is a list of all valid airport-pair combinations.
-- If `return` trip is requested the inbound and outbound solutions are merged to have all possible combinations.
 - A new graph is created within each combination of flights. *Here the flights themselves are substituted with their ID's. This graph is represented with an adjacency list taking into consideration the transfer rules and `bags` filter.
-- This 'journey' graph is also traversed by a DFS algorithm to build the list of valid flights (ID) within each combination.
+- This 'journey' graph is also traversed by a DFS algorithm to build the list of valid flights (IDs) within each combination.
+- If `return` trip is requested the above journey graph traversal is conducted for the return flights combinations as well. The inbound and outbound solutions are merged with the layover rule.
 - The ID numbers are replaced with the actual flights data.
 - The ID numbers are cleared from the output.
 - The output is reordered by the total ticket + bag price.
