@@ -45,7 +45,7 @@ Optional arguments can be given in random order.
 
 **The main file is solution.py.**
 ### Example usage:
-####python -m solution example/example3.csv ZRW BPZ --bags=2 --transfer=4 --return --progress --raw --timer
+**python -m solution example/example3.csv ZRW BPZ --bags=2 --transfer=4 --return --progress --raw --timer**
 
 ### Additional notes
 
