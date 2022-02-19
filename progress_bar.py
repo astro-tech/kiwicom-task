@@ -26,9 +26,3 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
     if iteration == total:
         print('\033[KComplete!')
         print('\033[K', end='\r')
-
-# old version
-# print(f'\r{prefix}\n |{bar}| {percent}% {suffix}', end=print_end)
-#     # Print New Line on Complete
-#     if iteration == total:
-#         print()
