@@ -209,7 +209,7 @@ def generate_output_list(fetched_flights, min_bags):
             elif a.return_requested and flight_leg['origin'] == a.destination:
                 layover_ends = datetime.strptime(flight_leg['departure'], '%Y-%m-%dT%H:%M:%S')
             bags_allowed.append(flight_leg['bags_allowed'])
-            total_price += flight_leg['base_price'] + flight_leg['bag_price']  # not sure if bag_price * bag_nbr
+            total_price += flight_leg['base_price'] + flight_leg['bag_price'] * min_bags
         if a.return_requested:
             travel_time -= (layover_ends - layover_starts)  # total travel time is reduced with the layover time
         current_dictionary = {'flights': flights_found,

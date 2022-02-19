@@ -20,7 +20,7 @@ Pipeline:
 - If `return_requested` the above journey graph traversal is conducted for the return flights combinations as well. The inbound and outbound solutions are merged with the layover rule.
 - The ID numbers are replaced with the actual flights data.
 - The ID numbers are cleared from the output.
-- The output is reordered by the total ticket + bag price. (Not sure if the bag price is a per bag price or the total bag allowance cost)
+- The output is reordered by the total ticket + bag price.
 - Finally, the output is converted to JSON compatible format if not otherwise requested by the `raw_format_requested` argument.
 
 During the process the user can diplay the currently discovered routing with the `print_progress` argument.
@@ -50,6 +50,7 @@ Optional arguments can be given in random order.
 ### Additional notes
 
 In case of return trip search the layover rule is changed to the following: the departing flight from the destination can only be 1 hour after the inbound flight's arrival time.
+The total trip time in this case doesn't include the layover time.
 
 As the number of transfers are increasing (with increasing the `max_transfer` limit) the possibilities are also increasing exponentially.
 This means that the program starts to lag, due to the number of iterations it has to carry out.
