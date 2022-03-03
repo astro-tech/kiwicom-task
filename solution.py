@@ -100,12 +100,14 @@ def generate_travel_plans():
     outbound_adj = convert_to_adjacency_list(network, a.origin, a.destination)
     travel_plans_out = get_all_possibilities_between_origin_destination(
         outbound_adj, a.origin, a.destination, a.max_transfer)
-    travel_plans_all.append(travel_plans_out)
+    sorted_travel_plans_out = list(sorted(travel_plans_out, key=len))
+    travel_plans_all.append(sorted_travel_plans_out)
     if a.return_requested:
         inbound_adj = convert_to_adjacency_list(network, a.destination, a.origin)
         travel_plans_back = get_all_possibilities_between_origin_destination(
             inbound_adj, a.destination, a.origin, a.max_transfer)
-        travel_plans_all.append(travel_plans_back)
+        sorted_travel_plans_back = list(sorted(travel_plans_back, key=len))
+        travel_plans_all.append(sorted_travel_plans_back)
     if a.print_progress:
         print('Complete!')
     return travel_plans_all
