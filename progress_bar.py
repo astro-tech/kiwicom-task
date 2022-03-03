@@ -1,6 +1,6 @@
 import colorama
 # https://stackoverflow.com/questions/6840420/rewrite-multiple-lines-in-the-console
-colorama.init()     # this enables \033[A characters
+# colorama.init()     # this enables \033[A characters
 
 
 # https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
