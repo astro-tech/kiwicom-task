@@ -63,10 +63,10 @@ Input used: python -m solution example/example3.csv ZRW BPZ --timer
 |0             |0.06 sec          |1                      |
 |1             |0.1 sec           |6                      |
 |2             |0.4 sec           |31                     |
-|3             |2.2 sec           |131                    |
-|4             |9.7 sec           |431                    |
-|5             |27.1 sec          |1031                   |
-|6             |49.2 sec          |1631                   |
+|3             |2.1 sec           |131                    |
+|4             |5.3 sec           |431                    |
+|5             |9.2 sec           |1031                   |
+|6             |10.9 sec          |1631                   |
 
 In case of `return_requested` the above times roughly increase twofold.
 For large CSV tables and/or high `max_transfer` numbers the use of `print_progress` is recommended.

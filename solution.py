@@ -147,9 +147,6 @@ def assign_flights_to_travel_plans(plans, min_bags):
 
 
 def fetch_flight_ids_within_travel_plan(travel_plan, min_bags):
-    # travel_plan = [('ZRW', 'EZO'), ('EZO', 'WTN'), ('WTN', 'WUE'), ('WUE', 'VVH'), ('VVH', 'JBN'), ('JBN', 'NNB'), ('NNB', 'BPZ')]
-    # travel_plan = [('DHE', 'NRX'), ('NRX', 'NIZ')]
-    # travel_plan = [('DHE', 'NRX'), ('NRX', 'SML'), ('SML', 'NIZ')]
     travel_plan_length = len(travel_plan)
     for k in range(1, travel_plan_length):
         if travel_plan[0:k] in failed_solutions:
@@ -178,13 +175,8 @@ def fetch_flight_ids_within_travel_plan(travel_plan, min_bags):
                                 and check_within_timeframe(row_1['arrival'], row_2['departure'], False):  # lay.ov=False
                             transfer_lists[row_1['idn']].append(row_2['idn'])
     list_of_flights_ids, max_depth = transfer_lists_traverse(graph_starts, transfer_lists, travel_plan_length)
-    if max_depth != travel_plan_length:
+    if max_depth < travel_plan_length-1:
         failed_solutions.append(travel_plan[0:max_depth+1])
-    # print(max_depth)
-    # print(list_of_flights_ids)
-    # print(transfer_lists)
-    # print(graph_starts)
-    # print(travel_plan_length)
     return list_of_flights_ids
 
 
@@ -268,9 +260,6 @@ if __name__ == '__main__':
     network = generate_flights_network_graph(flights_list)
     validate_origin_destination_input()
     travel_plans = generate_travel_plans()
-
-    # fetch_flight_ids_within_travel_plan(None, a.requested_bags)
-
     if a.print_progress:
         if not a.return_requested:
             print(f'Found {str(len(travel_plans[0]))} possible combinations.')
@@ -281,9 +270,6 @@ if __name__ == '__main__':
     output = generate_output_list(journey_list, a.requested_bags)
     remove_id_numbers(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
-
-    # print(failed_solutions)
-
     if a.timing_requested:
         print("Process finished in: %s seconds" % (time.time() - start_time))
         input("Press any key to display results.")
