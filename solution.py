@@ -27,7 +27,9 @@ def command_line_arguments():
     parser.add_argument('--timer', dest='timing_requested', action='store_true', help='Measure time to complete task')
     # args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--bags=2', '--transfer=4',
     #                           '--return', '--progress', '--raw', '--timer'])
-    args = parser.parse_args()
+    args = parser.parse_args(['example/example1.csv', 'DHE', 'NIZ', '--progress', '--timer'])
+    # args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--progress'])
+    # args = parser.parse_args()
     return args
 
 
@@ -145,6 +147,10 @@ def assign_flights_to_travel_plans(plans, min_bags):
 
 
 def fetch_flight_ids_within_travel_plan(travel_plan, min_bags):
+    # travel_plan = [('ZRW', 'EZO'), ('EZO', 'WTN'), ('WTN', 'WUE'), ('WUE', 'VVH'), ('VVH', 'JBN'), ('JBN', 'NNB'), ('NNB', 'BPZ')]
+    # travel_plan = [('DHE', 'NRX'), ('NRX', 'NIZ')]
+    # travel_plan = [('DHE', 'NRX'), ('NRX', 'SML'), ('SML', 'NIZ')]
+
     transfer_lists = {}     # adjacency list
     graph_starts = []      # to collect the first leg id's as starting points for the graph traversal
     travel_plan_length = len(travel_plan)
@@ -167,7 +173,14 @@ def fetch_flight_ids_within_travel_plan(travel_plan, min_bags):
                                 and row_2['bags_allowed'] >= min_bags \
                                 and check_within_timeframe(row_1['arrival'], row_2['departure'], False):  # lay.ov=False
                             transfer_lists[row_1['idn']].append(row_2['idn'])
-    list_of_flights_ids = transfer_lists_traverse(graph_starts, transfer_lists, travel_plan_length)
+    list_of_flights_ids, max_depth = transfer_lists_traverse(graph_starts, transfer_lists, travel_plan_length)
+    if max_depth != travel_plan_length:
+        failed_solutions.append(travel_plan[0:max_depth+1])
+    # print(max_depth)
+    # print(list_of_flights_ids)
+    # print(transfer_lists)
+    # print(graph_starts)
+    # print(travel_plan_length)
     return list_of_flights_ids
 
 
@@ -242,7 +255,7 @@ def convert_to_json_format(input_list):
 
 
 if __name__ == '__main__':
-    visited_solutions = {}
+    failed_solutions = []
 
     start_time = time.time()
     Graph = namedtuple('Graph', ['vertices', 'edges'])  # create graph namedtuple
@@ -251,6 +264,9 @@ if __name__ == '__main__':
     network = generate_flights_network_graph(flights_list)
     validate_origin_destination_input()
     travel_plans = generate_travel_plans()
+
+    # fetch_flight_ids_within_travel_plan(None, a.requested_bags)
+
     if a.print_progress:
         if not a.return_requested:
             print(f'Found {str(len(travel_plans[0]))} possible combinations.')
@@ -261,6 +277,9 @@ if __name__ == '__main__':
     output = generate_output_list(journey_list, a.requested_bags)
     remove_id_numbers(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
+
+    print(failed_solutions)
+
     if a.timing_requested:
         print("Process finished in: %s seconds" % (time.time() - start_time))
         input("Press any key to display results.")
