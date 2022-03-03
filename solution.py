@@ -27,9 +27,9 @@ def command_line_arguments():
     parser.add_argument('--timer', dest='timing_requested', action='store_true', help='Measure time to complete task')
     # args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--bags=2', '--transfer=4',
     #                           '--return', '--progress', '--raw', '--timer'])
-    args = parser.parse_args(['example/example1.csv', 'DHE', 'NIZ', '--progress', '--timer'])
-    # args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--progress'])
-    # args = parser.parse_args()
+    # args = parser.parse_args(['example/example1.csv', 'DHE', 'NIZ', '--progress', '--timer'])
+    # args = parser.parse_args(['example/example3.csv', 'ZRW', 'BPZ', '--progress', '--timer'])
+    args = parser.parse_args()
     return args
 
 
@@ -150,10 +150,14 @@ def fetch_flight_ids_within_travel_plan(travel_plan, min_bags):
     # travel_plan = [('ZRW', 'EZO'), ('EZO', 'WTN'), ('WTN', 'WUE'), ('WUE', 'VVH'), ('VVH', 'JBN'), ('JBN', 'NNB'), ('NNB', 'BPZ')]
     # travel_plan = [('DHE', 'NRX'), ('NRX', 'NIZ')]
     # travel_plan = [('DHE', 'NRX'), ('NRX', 'SML'), ('SML', 'NIZ')]
+    travel_plan_length = len(travel_plan)
+    for k in range(1, travel_plan_length):
+        if travel_plan[0:k] in failed_solutions:
+            return []
 
     transfer_lists = {}     # adjacency list
     graph_starts = []      # to collect the first leg id's as starting points for the graph traversal
-    travel_plan_length = len(travel_plan)
+
     if travel_plan_length == 1:     # direct flight case
         sectors_to_check = [0]
     else:
@@ -278,7 +282,7 @@ if __name__ == '__main__':
     remove_id_numbers(output)
     ordered_output = sorted(output, key=itemgetter('total_price'), reverse=False)  # ascending
 
-    print(failed_solutions)
+    # print(failed_solutions)
 
     if a.timing_requested:
         print("Process finished in: %s seconds" % (time.time() - start_time))
